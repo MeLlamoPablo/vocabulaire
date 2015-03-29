@@ -245,7 +245,7 @@ if(isset($_POST['nom'])){
 		?>
 		<div class="navbar navbar-default <?php if(!isset($_GET['examen']) OR isset($_POST['envoyer'])){ echo 'navbar-fixed-bottom'; } ?>">
 			<div class="container">
-				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.1ß</a>.</p>
+				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.0.1ß</a>.</p>
 			</div>
 		</div>
 		<!-- Changelog -->
@@ -258,9 +258,9 @@ if(isset($_POST['nom'])){
 					</div>
 					<div class="modal-body">
 						<ul>
-							<li>v2.1ß (29/3/15)
+							<li>v2.0.1ß (29/3/15)
 							<ul>
-								<li>Arreglado un bug de codificaci&oacute;n que causaba la p&eacute;rdida de datos en modo administrador.</li>
+								<li>Mejorada la codificaci&oacute;n de caracteres.</li>
 								<li>Arreglado un bug de dise&ntilde;o que hac&iacute;a que el footer tapara contenido en la pantalla de correcci&oacute;n.</li>
 								<li>Cambios est&eacute;ticos menores.</li>
 							</ul>
