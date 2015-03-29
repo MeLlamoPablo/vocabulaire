@@ -1,11 +1,10 @@
 <?php
 
-// Inicio de configuracion de la BD
+//Database config
 $db_host		= 'localhost';
 $db_user		= 'root';
 $db_pass		= '';
 $db_database	= 'vocabulaire'; 
-// Fin de configuracion de la BD
 
 $mysqli = new mysqli($db_host,$db_user,$db_pass,$db_database);
 if ($mysqli->connect_errno) {
