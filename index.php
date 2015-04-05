@@ -1,9 +1,18 @@
 <?php
+//TODO questions appear to be duplicated instead of overwritten when updating in admin mode
+//TODO work in failureOnly mode's correction
 session_start();
 require_once 'connect.php';
 
 if(isset($_POST['nom'])){
 	$_SESSION['nom'] = $_POST['nom'];
+}
+
+//Is failureMode enabled?
+if(isset($_GET['failureMode']) /* TODO check that $_SESSION['failuresEsp'] contains at least one entry */){
+	$_SESSION['failureMode'] = TRUE;
+}else{
+	$_SESSION['failureMode'] = FALSE;
 }
 ?>
 <!DOCTYPE html>
@@ -30,6 +39,10 @@ if(isset($_POST['nom'])){
 							<li>Le premier mot (Soit un article, soit un verbe, soit un adjectif, etc.) commence toujours par une  majuscule.</li>
 							<li>Voici des caractères difficiles &agrave; &eacute;crire avec le clavier. Copie-les si tu en as besoin:<br> &aacute; &eacute; &iacute; &oacute; &uacute; &#124; &agrave; &egrave; &igrave; &ograve; &ugrave; &#124; &acirc; &ecirc; &icirc; &ocirc; &ucirc; &#124; &auml; &euml; &iuml; &ouml; &uuml; &#124; &#39; (apostrophe)<br>&Aacute; &Eacute; &Iacute; &Oacute; &Uacute; &#124; &Agrave; &Egrave; &Igrave; &Ograve; &Ugrave; &#124; &Acirc; &Ecirc; &Icirc; &Ocirc; &Ucirc; &#124; &Auml; &Euml; &Iuml; &Ouml; &Uuml;</li>
 						</ul>
+						<?php if($_SESSION['failureMode']){
+							echo '<div class="alert alert-info" role="alert">Maintenant, on te demande seulement les questions que tu as rat&eacute; la derni&eacute;re fois. Si ti veux faire tout l\'examen, <a href="index.php?examen='.$_GET['examen'].'">fais click ici</a>.</div>';
+						}
+						?>
 						<div class="section" style="margin-top: 0px;">
 							<form action="index.php" method="post">
 								<div class="form-group">
@@ -46,15 +59,8 @@ if(isset($_POST['nom'])){
 											$resultado = $mysqli->query("SELECT * FROM examenes WHERE id = ".$_GET['examen']);
 											if($resultado->fetch_assoc()['activa'] == 0) die('<meta http-equiv="refresh" content="0; url=index.php" />');
 
-											//Is failureMode enabled?
-											if(!isset($_GET['failureMode']) /* TODO check that $_SESSION['failuresEsp'] contains at least one entry */){
-												$_SESSION['failureMode'] = TRUE;
-											}else{
-												$_SESSION['failureMode'] = FALSE;
-											}
-
 											//Get exam data
-											if($_SESSION['failureMode']){
+											if(!$_SESSION['failureMode']){
 												//If failureMode is off, get the exam data from the database
 
 												$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['examen']);
@@ -84,8 +90,6 @@ if(isset($_POST['nom'])){
 												}
 											}else{
 												//If failureMode is on, get the exam data from _SESSION
-												//TODO important spanish words may appear in french column and vice versa.
-
 												$esp = $_SESSION['failuresEsp'];
 												$fra = $_SESSION['failuresFra'];
 												$metodo = $_SESSION['failuresMetodo'];
@@ -98,15 +102,6 @@ if(isset($_POST['nom'])){
 												}
 												
 												shuffle($orden);
-
-												$num = 0;
-												while(isset($esp[$num])){
-													$fra[$orden[$num]] = $esp[$num]; //Al reves para fixear un bug
-													$esp[$orden[$num]] = $fra[$num];
-
-													$metodo[$orden[$num]] = $metodo[$num];
-													$num++;
-												}
 											}
 
 											$_SESSION['esp'] = $esp;
@@ -136,8 +131,6 @@ if(isset($_POST['nom'])){
 											}
 
 											$num = 0;
-											
-
 											while(isset($fra[$num])){
 												if($pregunta[$num] === 'esp'){
 													//Se da en frances, se pide en espanol
@@ -298,8 +291,7 @@ if(isset($_POST['nom'])){
 						<?php
 						//Offer the failure only mode if there is at least 1 mistake
 						if($bad != 0){
-							//This is not ready yet
-							//echo '<a class="btn btn-default" href="index.php?examen='.$_SESSION['examen'].'&failureMode">Recommen&ccedil;er seulement avec les erreurs</a>';
+							echo '<a class="btn btn-default" href="index.php?examen='.$_SESSION['examen'].'&failureMode" data-toggle="tooltip" data-placement="bottom" title="Si tu cliques sur ce bouton, on te demandera seulement les questions que tu as rat&eacute;. On ignorera les succ&egrave;s.">Recommen&ccedil;er seulement avec les erreurs</a>';
 						}
 						?>
 					</div>
@@ -311,7 +303,7 @@ if(isset($_POST['nom'])){
 		?>
 		<div class="navbar navbar-default <?php if(isset($footer_fixed) AND $footer_fixed){ echo 'navbar-fixed-bottom'; } ?>">
 			<div class="container">
-				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.0.1ß</a>.</p>
+				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.1ß</a>.</p>
 			</div>
 		</div>
 		<!-- Changelog -->
@@ -324,6 +316,11 @@ if(isset($_POST['nom'])){
 					</div>
 					<div class="modal-body">
 						<ul>
+							<li>v2.1ß (05/4/15)
+							<ul>
+								<li>A&ntilde;adida la funci&oacute;n "recomenzar con fallos".</li>
+							</ul>
+							</li>
 							<li>v2.0.1ß (29/3/15)
 							<ul>
 								<li>Mejorada la codificaci&oacute;n de caracteres.</li>
@@ -346,5 +343,11 @@ if(isset($_POST['nom'])){
 				</div>
 			</div>
 		</div>
+		<script type="text/javascript">
+			//Initialize bootstrap tooltips
+			$(function () {
+			  $('[data-toggle="tooltip"]').tooltip()
+			})
+		</script>
 	</body>
 </html>
