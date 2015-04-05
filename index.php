@@ -42,32 +42,71 @@ if(isset($_POST['nom'])){
 										</thead>
 										<tbody>
 										<?php
-											//Si el examen no es público
+											//If exam is not public, redirect to the main page
 											$resultado = $mysqli->query("SELECT * FROM examenes WHERE id = ".$_GET['examen']);
 											if($resultado->fetch_assoc()['activa'] == 0) die('<meta http-equiv="refresh" content="0; url=index.php" />');
-											//Extraer de la base de datos
-											$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['examen']);
-											$num = 0;
-											while($pregunta = $resultado->fetch_assoc()){
-												$orden[] = $num;
-												$num++;
+
+											//Is failureMode enabled?
+											if(!isset($_GET['failureMode']) /* TODO check that $_SESSION['failuresEsp'] contains at least one entry */){
+												$_SESSION['failureMode'] = TRUE;
+											}else{
+												$_SESSION['failureMode'] = FALSE;
 											}
-											
-											shuffle($orden);
 
-											$num = 0;
-											$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['examen']);
-											while($pregunta = $resultado->fetch_assoc()){
-												$fra[$orden[$num]] = $pregunta['esp']; //Al reves para fixear un bug
-												$esp[$orden[$num]] = $pregunta['fra'];
+											//Get exam data
+											if($_SESSION['failureMode']){
+												//If failureMode is off, get the exam data from the database
 
-												//METODO:
-												//1 - Se puede preguntar en frances y en espanol
-												//2 - Se pregunta siempre en espanol
-												//3 - Se pregunta siempre en frances
+												$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['examen']);
+												$num = 0;
 
-												$metodo[$orden[$num]] = $pregunta['modo'];
-												$num++;
+												//Count the number of questions
+												while($pregunta = $resultado->fetch_assoc()){
+													$orden[] = $num;
+													$num++;
+												}
+												
+												shuffle($orden);
+
+												$num = 0;
+												$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['examen']);
+												while($pregunta = $resultado->fetch_assoc()){
+													$fra[$orden[$num]] = $pregunta['esp']; //Al reves para fixear un bug
+													$esp[$orden[$num]] = $pregunta['fra'];
+
+													//METODO:
+													//1 - Se puede pedir en frances y en espanol
+													//2 - Se pide siempre en espanol
+													//3 - Se pide siempre en frances
+
+													$metodo[$orden[$num]] = $pregunta['modo'];
+													$num++;
+												}
+											}else{
+												//If failureMode is on, get the exam data from _SESSION
+												//TODO important spanish words may appear in french column and vice versa.
+
+												$esp = $_SESSION['failuresEsp'];
+												$fra = $_SESSION['failuresFra'];
+												$metodo = $_SESSION['failuresMetodo'];
+
+												//Count how many questions
+												$count = 0;
+												while(isset($esp[$count])){
+													$orden[] = $count;
+													$count++;
+												}
+												
+												shuffle($orden);
+
+												$num = 0;
+												while(isset($esp[$num])){
+													$fra[$orden[$num]] = $esp[$num]; //Al reves para fixear un bug
+													$esp[$orden[$num]] = $fra[$num];
+
+													$metodo[$orden[$num]] = $metodo[$num];
+													$num++;
+												}
 											}
 
 											$_SESSION['esp'] = $esp;
@@ -127,6 +166,7 @@ if(isset($_POST['nom'])){
 				</div>
 			<?php
 			else://isset($_SESSION['examen'])
+			$footer_fixed = TRUE;
 			?>
 				<div class="container">
 					<div class="jumbotron">
@@ -166,6 +206,9 @@ if(isset($_POST['nom'])){
 							$fra = $_SESSION['fra'];
 							$numero = $_SESSION['numero'];
 							$pregunta = $_SESSION['pregunta'];
+							$metodo = $_SESSION['metodo'];
+
+							//TODO failureMode correction
 
 							//Corregir las apostrofes y htmlspecialchars();
 							$num = 0;
@@ -181,6 +224,11 @@ if(isset($_POST['nom'])){
 								$num++;
 							}
 
+							//Initialize 'failures', we're gonna need it for the 'failure only' mode
+							$failuresEsp = array();
+							$failuresFra = array();
+							$failuresMetodo = array();
+
 							$num = 0;
 							$good = 0;
 							$bad = 0;
@@ -190,6 +238,12 @@ if(isset($_POST['nom'])){
 									$good++;
 								}else{
 									echo '<tr class="danger">';
+
+									//Add the mistaken words to the failures variables
+									$failuresEsp[$bad] = $esp[$num];
+									$failuresFra[$bad] = $fra[$num];
+									$failuresMetodo[$bad] = $metodo[$num];
+
 									$bad++;
 								}
 								//Mot
@@ -220,6 +274,11 @@ if(isset($_POST['nom'])){
 								echo '</td></tr>';
 								$num++;
 							}
+							
+							//Add the failures variables into the _SESSION so that we can carry them into the failure only mode
+							$_SESSION['failuresEsp'] = $failuresEsp;
+							$_SESSION['failuresFra'] = $failuresFra;
+							$_SESSION['failuresMetodo'] = $failuresMetodo;
 							?>
 						</tbody>
 					</table>
@@ -235,7 +294,14 @@ if(isset($_POST['nom'])){
 					}
 					?>!</p>
 					<div class="text-center">
-						<a class="btn btn-default" href="index.php?examen=<?php echo $_SESSION['examen'] ?>">Recommen&ccedil;er</a>
+						<a class="btn btn-default" href="index.php?examen=<?php echo $_SESSION['examen'] ?>">Recommen&ccedil;er de z&eacute;ro</a>
+						<?php
+						//Offer the failure only mode if there is at least 1 mistake
+						if($bad != 0){
+							//This is not ready yet
+							//echo '<a class="btn btn-default" href="index.php?examen='.$_SESSION['examen'].'&failureMode">Recommen&ccedil;er seulement avec les erreurs</a>';
+						}
+						?>
 					</div>
 				</div>
 			</div>
@@ -243,7 +309,7 @@ if(isset($_POST['nom'])){
 		<?php
 		endif;
 		?>
-		<div class="navbar navbar-default <?php if(!isset($_GET['examen']) OR isset($_POST['envoyer'])){ echo 'navbar-fixed-bottom'; } ?>">
+		<div class="navbar navbar-default <?php if(isset($footer_fixed) AND $footer_fixed){ echo 'navbar-fixed-bottom'; } ?>">
 			<div class="container">
 				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.0.1ß</a>.</p>
 			</div>
