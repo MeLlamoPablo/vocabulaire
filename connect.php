@@ -1,5 +1,7 @@
 <?php
 
+//Before connecting the database to the app, make sure you follow the steps on db_setup.sql
+
 //Database config
 $db_host		= 'localhost';
 $db_user		= 'root';
