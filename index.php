@@ -1,6 +1,4 @@
 <?php
-//TODO questions appear to be duplicated instead of overwritten when updating in admin mode
-//TODO work in failureOnly mode's correction
 session_start();
 require_once 'connect.php';
 
@@ -9,7 +7,7 @@ if(isset($_POST['nom'])){
 }
 
 //Is failureMode enabled?
-if(isset($_GET['failureMode']) /* TODO check that $_SESSION['failuresEsp'] contains at least one entry */){
+if(isset($_GET['failureMode'])){
 	$_SESSION['failureMode'] = TRUE;
 }else{
 	$_SESSION['failureMode'] = FALSE;
@@ -200,8 +198,6 @@ if(isset($_GET['failureMode']) /* TODO check that $_SESSION['failuresEsp'] conta
 							$numero = $_SESSION['numero'];
 							$pregunta = $_SESSION['pregunta'];
 							$metodo = $_SESSION['metodo'];
-
-							//TODO failureMode correction
 
 							//Corregir las apostrofes y htmlspecialchars();
 							$num = 0;
