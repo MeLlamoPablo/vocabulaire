@@ -197,6 +197,7 @@ unset($_SESSION['examen']);
 						}
 						echo ' - <a href="admin.php?editar='.$fila['id'].'">Editar</a>';
 						echo ' - <a href="#" onclick="javascript:seguro('.$fila['id'].')">Borrar</a>';
+						echo ' - <a href="#">Exportar</a>';
 						echo '</li>';
 					}
 					?>
