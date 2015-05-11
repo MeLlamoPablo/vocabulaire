@@ -299,7 +299,7 @@ if(isset($_GET['failureMode'])){
 		?>
 		<div class="navbar navbar-default <?php if(isset($footer_fixed) AND $footer_fixed){ echo 'navbar-fixed-bottom'; } ?>">
 			<div class="container">
-				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.1ß</a>.</p>
+				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.1ß</a>. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
 			</div>
 		</div>
 		<!-- Changelog -->
@@ -312,6 +312,11 @@ if(isset($_GET['failureMode'])){
 					</div>
 					<div class="modal-body">
 						<ul>
+							<li>v2.1.1ß (11/05/15)
+							<ul>
+								<li>Arreglo de bugs y mejoras en el backend.</li>
+							</ul>
+							</li>
 							<li>v2.1ß (05/4/15)
 							<ul>
 								<li>A&ntilde;adida la funci&oacute;n "recomenzar con fallos".</li>

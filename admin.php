@@ -1,4 +1,7 @@
 <?php
+
+//TODO ability to edit the name of an exam
+
 session_start();
 require_once 'connect.php';
 if(isset($_POST['submit'])){
@@ -20,7 +23,7 @@ if(isset($_GET['desactivar']) && isset($_SESSION['administration'])){
 
 //Si se ha creado
 if(isset($_POST['crear']) && isset($_SESSION['administration'])){
-	$mysqli->query("INSERT INTO examenes (`nombre`,`preguntas`) VALUES ('".mysql_real_escape_string($_POST['titulo'])."', '".$_POST['numero']."');");
+	$mysqli->query("INSERT INTO examenes (`nombre`,`preguntas`) VALUES ('".htmlentities(mysql_real_escape_string($_POST['titulo']))."', '".$_POST['numero']."');");
 	die('<meta http-equiv="refresh" content="0; url=admin.php?editar='.$mysqli->insert_id.'" />');
 }
 
