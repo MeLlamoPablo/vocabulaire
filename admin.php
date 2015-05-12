@@ -199,13 +199,18 @@ unset($_SESSION['examen']);
 							echo ' - <a href="admin.php?activar='.$fila['id'].'">Activar</a>';
 						}
 						echo ' - <a href="admin.php?editar='.$fila['id'].'">Editar</a>';
-						echo ' - <a href="export.php?examen='.$fila['id'].'" download="Examen'.$fila['id'].'.json">Exportar</a>'; //TODO sanitize name
+						echo ' - <a href="export.php?examen='.$fila['id'].'" download="=?'.$fila['nombre'].'.json">Exportar</a>';
 						echo ' - <a href="#" onclick="javascript:seguro('.$fila['id'].')">Borrar</a>';
 						echo '</li>';
 					}
 					?>
 				</ul>
 				<p><a href="admin.php?crear">Crear un nuevo examen</a></p>
+				<form action="import.php" method="post" enctype="multipart/form-data">
+					<label for="exampleInputFile">Importar un archivo</label>
+					<input type="file" id="jsonFile" name="jsonFile"><br>
+					<input type="submit" value="Importar" name="submit">
+				</form>
 			</div>
 		<?php endif; ?> 
 	<?php else: ?>
