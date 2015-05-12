@@ -49,7 +49,7 @@ if(isset($_POST['editar']) && isset($_SESSION['administration'])){
 		}
 	}
 
-	$actualizado = TRUE;
+	$_GET['msg'] = 1;
 }
 
 //Si se ha dado la orden de borrar una pregunta
@@ -184,8 +184,22 @@ unset($_SESSION['examen']);
 			</script>
 			<div class="container jumbotron" id="principal">
 				<h2>Administraci&oacute;n</h2>
-				<?php if(isset($actualizado)){
-					echo '<div class="alert alert-success">Los cambios se han guardado correctamente.</div>';
+				<?php if(isset($_GET['msg'])){
+					switch($_GET['msg']){
+						case '1':
+							echo '<div class="alert alert-success alert-dismissible" role="alert">';
+								echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+								echo '<strong>Los cambios se han guardado correctamente.</strong>';
+							echo '</div>';
+							break;
+
+						case '2':
+							echo '<div class="alert alert-success alert-dismissible" role="alert">';
+								echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+								echo '<strong>Se ha importado un examen correctamente.</strong>';
+							echo '</div>';
+							break;
+					}
 				} ?>
 				<p>Desede aqu&iacute; se pueden crear ex&aacute;menes o modificar los existentes. Los ex&aacute;menes activos son accesibles por todo el mundo, mientras que los inactivos solo son accesibles desde la administraci&oacute;n.</p>
 				<ul>
@@ -199,7 +213,7 @@ unset($_SESSION['examen']);
 							echo ' - <a href="admin.php?activar='.$fila['id'].'">Activar</a>';
 						}
 						echo ' - <a href="admin.php?editar='.$fila['id'].'">Editar</a>';
-						echo ' - <a href="export.php?examen='.$fila['id'].'" download="=?'.$fila['nombre'].'.json">Exportar</a>';
+						echo ' - <a href="export.php?examen='.$fila['id'].'" download="'.$fila['nombre'].'.json">Exportar</a>';
 						echo ' - <a href="#" onclick="javascript:seguro('.$fila['id'].')">Borrar</a>';
 						echo '</li>';
 					}
@@ -208,6 +222,7 @@ unset($_SESSION['examen']);
 				<p><a href="admin.php?crear">Crear un nuevo examen</a></p>
 				<form action="import.php" method="post" enctype="multipart/form-data">
 					<label for="exampleInputFile">Importar un archivo</label>
+					<div>Los archivos que se pueden importar son los generados al hacer click en el bot&oacute;n "Exportar". Estos archivos terminan en <i>.json</i><div>
 					<input type="file" id="jsonFile" name="jsonFile"><br>
 					<input type="submit" value="Importar" name="submit">
 				</form>

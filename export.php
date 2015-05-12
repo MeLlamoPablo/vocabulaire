@@ -27,13 +27,13 @@ if(isset($_GET['examen'])){
 	$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['examen']);
 	while($preguntas = $resultado->fetch_assoc()){
 		$questions[$preguntas['num']] = array(
-			'lang1' => htmlentities($preguntas['esp']),
-			'lang2' => htmlentities($preguntas['fra']),
+			'lang1' => $preguntas['esp'],
+			'lang2' => $preguntas['fra'],
 			'mode' => $preguntas['modo']);
 	}
 
 	$export = array(
-		'title' => htmlentities($examen['nombre']),
+		'title' => $examen['nombre'],
 		'active' => $examen['activa'],
 		'generatedWithVersion' => $version,
 		'numberOfQuestions' => $examen['preguntas'],
