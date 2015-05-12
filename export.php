@@ -1,4 +1,8 @@
 <?php
+
+//Set the content type to JSON
+header('Content-Type: application/json');
+
 session_start();
 require_once 'connect.php';
 
@@ -11,6 +15,9 @@ if(!isset($_SESSION['administration']) OR !$_SESSION['administration']){
 if(isset($_GET['examen'])){
 	//Single export
 
+	//Version:
+	$version = '2.2.1';
+
 	//Get data from examenes
 	$resultado = $mysqli->query("SELECT * FROM examenes WHERE id = ".$_GET['examen']);
 	$examen = $resultado->fetch_assoc();
@@ -19,20 +26,21 @@ if(isset($_GET['examen'])){
 	$questions = array();
 	$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['examen']);
 	while($preguntas = $resultado->fetch_assoc()){
-		$questions[$preguntas['num'] + 1] = array(
-			'num' => $preguntas['num'],
-			'lang1' => $preguntas['esp'],
-			'lang2' => $preguntas['fra'],
+		$questions[$preguntas['num']] = array(
+			'lang1' => htmlentities($preguntas['esp']),
+			'lang2' => htmlentities($preguntas['fra']),
 			'mode' => $preguntas['modo']);
 	}
 
 	$export = array(
-		'title' => $examen['nombre'],
+		'title' => htmlentities($examen['nombre']),
 		'active' => $examen['activa'],
+		'generatedWithVersion' => $version,
 		'numberOfQuestions' => $examen['preguntas'],
 		'questions' => $questions);
 
-	echo json_encode($export); //TODO download into a file named foo.json
+	//Output the exam in json
+	echo json_encode($export, JSON_FORCE_OBJECT);
 }else{
 	//TODO Export all
 }

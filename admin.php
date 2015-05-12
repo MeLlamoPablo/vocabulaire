@@ -199,8 +199,8 @@ unset($_SESSION['examen']);
 							echo ' - <a href="admin.php?activar='.$fila['id'].'">Activar</a>';
 						}
 						echo ' - <a href="admin.php?editar='.$fila['id'].'">Editar</a>';
+						echo ' - <a href="export.php?examen='.$fila['id'].'" download="Examen'.$fila['id'].'.json">Exportar</a>'; //TODO sanitize name
 						echo ' - <a href="#" onclick="javascript:seguro('.$fila['id'].')">Borrar</a>';
-						echo ' - <a href="#">Exportar</a>';
 						echo '</li>';
 					}
 					?>
