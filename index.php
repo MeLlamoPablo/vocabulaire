@@ -42,7 +42,7 @@ if(isset($_GET['failureMode'])){
 						}
 						?>
 						<div class="section" style="margin-top: 0px;">
-							<form action="index.php" method="post">
+							<form action="index.php<?php if($_SESSION['failureMode']){ echo '?failureMode'; } ?>" method="post">
 								<div class="form-group">
 									<table class="table table-condensed">
 										<thead>
@@ -273,15 +273,18 @@ if(isset($_GET['failureMode'])){
 					</table>
 				</div class="section">
 				<div>
-					<p style="font-size:7em; text-align: center;">Tu as eu un <?php
-					$nota = (10*$good)/$num;
-					$nota = round($nota, 2);
-					if($nota >= 5){
-						echo '<b style="color: #008b0a;">'.$nota.'</b>';
-					}else{
-						echo '<b style="color: #b20000;">'.$nota.'</b>';
-					}
-					?>!</p>
+					<?php //We only give the user a mark if the failureMode is disabled
+					if($_SESSION['failureMode'] == FALSE): ?>
+						<p style="font-size:7em; text-align: center;">Tu as eu un <?php
+						$nota = (10*$good)/$num;
+						$nota = round($nota, 2);
+						if($nota >= 5){
+							echo '<b style="color: #008b0a;">'.$nota.'</b>';
+						}else{
+							echo '<b style="color: #b20000;">'.$nota.'</b>';
+						}
+						?>!</p>
+					<?php endif; ?>
 					<div class="text-center">
 						<a class="btn btn-default" href="index.php?examen=<?php echo $_SESSION['examen'] ?>">Recommen&ccedil;er de z&eacute;ro</a>
 						<?php
@@ -299,7 +302,7 @@ if(isset($_GET['failureMode'])){
 		?>
 		<div class="navbar navbar-default <?php if(isset($footer_fixed) AND $footer_fixed){ echo 'navbar-fixed-bottom'; } ?>">
 			<div class="container">
-				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.2ß</a>. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
+				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.2.1ß</a>. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
 			</div>
 		</div>
 		<!-- Changelog -->
@@ -312,34 +315,42 @@ if(isset($_GET['failureMode'])){
 					</div>
 					<div class="modal-body">
 						<ul>
+							<li>v2.2.1ß (18/05/15)
+								<ul>
+									<li>Eliminadas funciones declaradas obsoletas por PHP.</li>
+									<li>Optimización de código</li>
+									<li>Mejorada la función para exportar</li>
+									<li>El modo "recomenzar con fallos" ya no dice la nota.</li>
+								</ul>
+							</li>
 							<li>v2.2ß (12/05/15)
-							<ul>
-								<li>Añadida funcionalidad para importar y exportar en el backend.</li>
-							</ul>
+								<ul>
+									<li>Añadida funcionalidad para importar y exportar en el backend.</li>
+								</ul>
 							</li>
 							<li>v2.1.1ß (11/05/15)
-							<ul>
-								<li>Arreglo de bugs y mejoras en el backend.</li>
-							</ul>
+								<ul>
+									<li>Arreglo de bugs y mejoras en el backend.</li>
+								</ul>
 							</li>
 							<li>v2.1ß (05/4/15)
-							<ul>
-								<li>A&ntilde;adida la funci&oacute;n "recomenzar con fallos".</li>
-							</ul>
+								<ul>
+									<li>A&ntilde;adida la funci&oacute;n "recomenzar con fallos".</li>
+								</ul>
 							</li>
 							<li>v2.0.1ß (29/3/15)
-							<ul>
-								<li>Mejorada la codificaci&oacute;n de caracteres.</li>
-								<li>Arreglado un bug de dise&ntilde;o que hac&iacute;a que el footer tapara contenido en la pantalla de correcci&oacute;n.</li>
-								<li>Cambios est&eacute;ticos menores.</li>
-							</ul>
+								<ul>
+									<li>Mejorada la codificaci&oacute;n de caracteres.</li>
+									<li>Arreglado un bug de dise&ntilde;o que hac&iacute;a que el footer tapara contenido en la pantalla de correcci&oacute;n.</li>
+									<li>Cambios est&eacute;ticos menores.</li>
+								</ul>
 							</li>
 							<li>v2.0ß
-							<ul>
-								<li>A&ntilde;adido un modo administrador.</li>
-								<li>C&oacute;digo optimizado.</li>
-								<li>Primera versi&oacute;n beta.</li>
-							</ul>
+								<ul>
+									<li>A&ntilde;adido un modo administrador.</li>
+									<li>C&oacute;digo optimizado.</li>
+									<li>Primera versi&oacute;n beta.</li>
+								</ul>
 							</li>
 						</ul>
 					</div>

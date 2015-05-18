@@ -17,13 +17,13 @@ if(!isset($json['generatedWithVersion'])){
 }
 
 //Add the imported exam to the 'examenes' table
-$mysqli->query("INSERT INTO examenes (`nombre`,`preguntas`) VALUES ('".mysql_real_escape_string($json['title'])."', '".$json['numberOfQuestions']."');");
+$mysqli->query("INSERT INTO examenes (`nombre`,`activa`) VALUES ('".mysqli_real_escape_string($mysqli, $json['title'])."', '".$json['active']."');");
 $examId = $mysqli->insert_id;
 
 //Add the questions to the 'preguntas' table
 $num = 0;
-while($num < $json['numberOfQuestions']){
-	$mysqli->query("INSERT INTO preguntas (`examen`,`esp`,`fra`,`modo`,`num`) VALUES (".$examId.", '".mysql_real_escape_string($json['questions'][$num]['lang1'])."', '".mysql_real_escape_string($json['questions'][$num]['lang2'])."', ".$json['questions'][$num]['mode'].", ".$num.");");
+while($num < count($json['questions'])){
+	$mysqli->query("INSERT INTO preguntas (`examen`,`esp`,`fra`,`modo`) VALUES (".$examId.", '".mysqli_real_escape_string($mysqli, $json['questions'][$num]['lang1'])."', '".mysqli_real_escape_string($mysqli, $json['questions'][$num]['lang2'])."', ".$json['questions'][$num]['mode'].");");
 	$num++;
 }
 
