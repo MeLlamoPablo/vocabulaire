@@ -139,13 +139,18 @@ unset($_SESSION['rowId']);
 
 						//Get all the exam rows
 						$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['editar']);
-						$preguntas = $resultado->fetch_all(MYSQLI_ASSOC);
+						//MASTER BRANCH: $preguntas = $resultado->fetch_all(MYSQLI_ASSOC);
+						//This won't work on versions older than PHP 5.3 so we do a workaround:
+						//Get every row and assign it as an array to $preguntas, one after another
+						for($i=0; $workaround = $resultado->fetch_assoc(); $i++){ 
+							$preguntas[$i] = $workaround;
+						}
 
-						//Add num_rows into the session because we need to tell the handler how many rows we want to add
-						if(isset($resultado->num_rows)) $_SESSION['num_rows'] = $resultado->num_rows;
+						//Add num_rows into ($i) the session because we need to tell the handler how many rows we want to add
+						$_SESSION['num_rows'] = $i;
 
 						//Add real rows
-						while($num < $resultado->num_rows){
+						while($num < $i){
 							echo '<tr>';
 								echo '<td><center><input required type="text" name="esp'.$num.'" style="width: 95%;" value="'.$preguntas[$num]['esp'].'"></center</td>';
 								echo '<td><center><input required type="text" name="fra'.$num.'" style="width: 95%;" value="'.$preguntas[$num]['fra'].'"></center</td>';

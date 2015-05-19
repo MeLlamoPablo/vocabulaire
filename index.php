@@ -1,4 +1,10 @@
 <?php
+
+//BRANCH 'compatible'
+//This version is compatible with PHP versions older than PHP 5.3, BUT it's slightly less efficient
+//It may also be out of date, though it shouldn't.
+//For PHP versions newer than 5.3, use 'master' branch
+
 session_start();
 require_once 'connect.php';
 
