@@ -23,8 +23,8 @@ if(isset($_GET['desactivar']) && isset($_SESSION['administration'])){
 
 //Si se ha creado
 if(isset($_POST['crear']) && isset($_SESSION['administration'])){
-	$mysqli->query("INSERT INTO examenes (`nombre`) VALUES ('".htmlentities(mysqli_real_escape_string($mysqli, $_POST['titulo']))."');");
-	die('<meta http-equiv="refresh" content="0; url=admin.php?editar='.$mysqli->insert_id.'&numOfQuestions='.$_POST['numero'].'" />');
+	$mysqli->query("INSERT INTO examenes (`nombre`,`preguntas`) VALUES ('".htmlentities(mysql_real_escape_string($_POST['titulo']))."', '".$_POST['numero']."');");
+	die('<meta http-equiv="refresh" content="0; url=admin.php?editar='.$mysqli->insert_id.'" />');
 }
 
 //Si se ha editado un examen
@@ -33,18 +33,18 @@ if(isset($_POST['editar']) && isset($_SESSION['administration'])){
 	$examen = $_SESSION['examen'];
 
 	//Comprobar si el examen se está editando por primera vez o no
-	$resultado = $mysqli->query("SELECT id FROM preguntas WHERE examen = ".$examen['id']." LIMIT 1");
+	$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$examen['id']." AND num = 0");
 	$preguntas = $resultado->fetch_assoc();
-	if(isset($preguntas['id'])){
+	if(isset($preguntas['esp'])){
 		$num = 0;
-		while($num < $_SESSION['num_rows']){
-			$mysqli->query("UPDATE preguntas SET `examen` = ".$examen['id'].", `esp` = '".htmlentities(mysqli_real_escape_string($mysqli, $_POST['esp'.$num]), ENT_QUOTES, "UTF-8")."', `fra` = '".htmlentities(mysqli_real_escape_string($mysqli, $_POST['fra'.$num]), ENT_QUOTES, "UTF-8")."', `modo` = ".$_POST['modo'.$num]." WHERE id = ".$_SESSION['rowId'][$num]);
+		while($num < $examen['preguntas']){
+			$mysqli->query("UPDATE preguntas SET `examen` = ".$examen['id'].", `esp` = '".htmlentities(mysql_real_escape_string($_POST['esp'.$num]), ENT_QUOTES, "UTF-8")."', `fra` = '".htmlentities(mysql_real_escape_string($_POST['fra'.$num]), ENT_QUOTES, "UTF-8")."', `modo` = ".$_POST['modo'.$num]." WHERE num = ".$num);
 			$num++;
 		}
 	}else{
 		$num = 0;
-		while($num < $_SESSION['numOfQuestions']){
-			$mysqli->query("INSERT INTO preguntas (`examen`,`esp`,`fra`,`modo`) VALUES (".$examen['id'].", '".htmlentities(mysqli_real_escape_string($mysqli, $_POST['esp'.$num]), ENT_QUOTES, "UTF-8")."', '".htmlentities(mysqli_real_escape_string($mysqli, $_POST['fra'.$num]), ENT_QUOTES, "UTF-8")."', ".$_POST['modo'.$num].");");
+		while($num < $examen['preguntas']){
+			$mysqli->query("INSERT INTO preguntas (`examen`,`esp`,`fra`,`modo`,`num`) VALUES (".$examen['id'].", '".htmlentities(mysql_real_escape_string($_POST['esp'.$num]), ENT_QUOTES, "UTF-8")."', '".htmlentities(mysql_real_escape_string($_POST['fra'.$num]), ENT_QUOTES, "UTF-8")."', ".$_POST['modo'.$num].", ".$num.");");
 			$num++;
 		}
 	}
@@ -56,15 +56,19 @@ if(isset($_POST['editar']) && isset($_SESSION['administration'])){
 if(isset($_GET['editar']) && isset($_GET['borrarpregunta']) && isset($_SESSION['administration'])){
 	//Borrar pregunta
 	$mysqli->query("DELETE FROM preguntas WHERE id = ".$_GET['borrarpregunta']);
-
+	//Reducir en 1 el numero de preguntas
+		//Ver cuantas preguntas hay ya
+		$resultado = $mysqli->query("SELECT preguntas FROM examenes WHERE id = ".$_GET['editar']);
+		$examen = $resultado->fetch_assoc();
+		//Añadir una mas
+		$preguntastotales = $examen['preguntas'] - 1;
+		//Guardar la información
+		$mysqli->query("UPDATE examenes SET preguntas = '".$preguntastotales."' WHERE id = ".$_GET['editar']);
 	//Redireccionar a la misma pagina sin la variable &borrarpregunta en la URL
 	die('<meta http-equiv="refresh" content="0; url=admin.php?editar='.$_GET['editar'].'" />');
 }
 
 unset($_SESSION['examen']);
-unset($_SESSION['numOfQuestions']);
-unset($_SESSION['num_rows']);
-unset($_SESSION['rowId']);
 ?>
 
 <!DOCTYPE html>
@@ -94,8 +98,16 @@ unset($_SESSION['rowId']);
 			<?php
 			//Si se ha dado la orden de añadir una pregunta
 			if(isset($_GET['anyadir'])){
-				//Insertar una fila vacía
-				$mysqli->query("INSERT INTO preguntas (`examen`,`esp`,`fra`,`modo`) VALUES (".$_GET['editar'].", '', '');");
+				//Ver cuantas preguntas hay ya
+				$resultado = $mysqli->query("SELECT preguntas FROM examenes WHERE id = ".$_GET['editar']);
+				$examen = $resultado->fetch_assoc();
+				//Añadir una mas
+				$preguntastotales = $examen['preguntas'] + 1;
+				//Guardar la información
+				$mysqli->query("UPDATE examenes SET preguntas = '".$preguntastotales."' WHERE id = ".$_GET['editar']);
+
+				//Insertar una fila vacía. num = $examen['preguntas'] porque la cuenta de ids empieza en 0.
+				$mysqli->query("INSERT INTO preguntas (`examen`,`esp`,`fra`,`modo`,`num`) VALUES (".$_GET['editar'].", '', '', '', '".$examen['preguntas']."');");
 			}
 
 			$resultado = $mysqli->query("SELECT * FROM examenes WHERE id = ".$_GET['editar']);
@@ -115,52 +127,24 @@ unset($_SESSION['rowId']);
 							echo '<td><center>Modo</center></td>';
 							echo '<td></td>';
 						echo '</tr>';
-
-						//If the exam is just created, add empty rows
-						if(isset($_GET['numOfQuestions'])){
-							while($num < $_GET['numOfQuestions']){
-								echo '<tr>';
-									echo '<td><center><input required type="text" name="esp'.$num.'" style="width: 95%;"></center</td>';
-									echo '<td><center><input required type="text" name="fra'.$num.'" style="width: 95%;"></center</td>';
-									echo '<td><center><select name="modo'.$num.'" style="width: 95%;">
-										  <option value="1" selected="selected">Se puede pedir en franc&eacute;s y en espa&ntilde;ol</option>
-										  <option value="2">Se pide siempre en espa&ntilde;ol</option>
-										  <option value="3">Se pide siempre en franc&eacute;s</option>
-										</select></center></td>';
-									echo '<td>';
-									echo '</td>';
-								echo '</tr>';
-								$num++;
-							}
-
-							//Add numOfQuestions into the session because we need to tell the handler how many rows we want to add
-							$_SESSION['numOfQuestions'] = $_GET['numOfQuestions'];
-						}
-
-						//Get all the exam rows
-						$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['editar']);
-						$preguntas = $resultado->fetch_all(MYSQLI_ASSOC);
-
-						//Add num_rows into the session because we need to tell the handler how many rows we want to add
-						if(isset($resultado->num_rows)) $_SESSION['num_rows'] = $resultado->num_rows;
-
-						//Add real rows
-						while($num < $resultado->num_rows){
+						while($num < $examen['preguntas']){
+							$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['editar']." AND num = ".$num);
+							$preguntas = $resultado->fetch_assoc();
 							echo '<tr>';
-								echo '<td><center><input required type="text" name="esp'.$num.'" style="width: 95%;" value="'.$preguntas[$num]['esp'].'"></center</td>';
-								echo '<td><center><input required type="text" name="fra'.$num.'" style="width: 95%;" value="'.$preguntas[$num]['fra'].'"></center</td>';
+								echo '<td><center><input required type="text" name="esp'.$num.'" style="width: 95%;" value="'.$preguntas['esp'].'"></center</td>';
+								echo '<td><center><input required type="text" name="fra'.$num.'" style="width: 95%;" value="'.$preguntas['fra'].'"></center</td>';
 								echo '<td><center><select name="modo'.$num.'" style="width: 95%;">
-									  <option value="1"'; if($preguntas[$num]['modo'] == 1){echo 'selected="selected"';} echo '>Se puede pedir en franc&eacute;s y en espa&ntilde;ol</option>
-									  <option value="2"'; if($preguntas[$num]['modo'] == 2){echo 'selected="selected"';} echo '>Se pide siempre en espa&ntilde;ol</option>
-									  <option value="3"'; if($preguntas[$num]['modo'] == 3){echo 'selected="selected"';} echo '>Se pide siempre en franc&eacute;s</option>
+									  <option value="1"'; if($preguntas['modo'] == 1){echo 'selected="selected"';} echo '>Se puede pedir en franc&eacute;s y en espa&ntilde;ol</option>
+									  <option value="2"'; if($preguntas['modo'] == 2){echo 'selected="selected"';} echo '>Se pide siempre en espa&ntilde;ol</option>
+									  <option value="3"'; if($preguntas['modo'] == 3){echo 'selected="selected"';} echo '>Se pide siempre en franc&eacute;s</option>
 									</select></center></td>';
 								echo '<td>';
 									//Codigo del boton del modal
-									echo '<button type="button" class="btn btn-primary btn-xs btn-danger" data-toggle="modal" data-target="#pregunta'.$preguntas[$num]['id'].'">
+									echo '<button type="button" class="btn btn-primary btn-xs btn-danger" data-toggle="modal" data-target="#pregunta'.$preguntas['id'].'">
 										  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
 										</button>';
 									//Codigo del modal
-									echo '<div class="modal fade" id="pregunta'.$preguntas[$num]['id'].'" tabindex="-1" role="dialog" aria-labelledby="pregunta'.$preguntas[$num]['id'].'" aria-hidden="true">
+									echo '<div class="modal fade" id="pregunta'.$preguntas['id'].'" tabindex="-1" role="dialog" aria-labelledby="pregunta'.$preguntas['id'].'" aria-hidden="true">
 										  <div class="modal-dialog">
 										    <div class="modal-content">
 										      <div class="modal-header">
@@ -172,20 +156,15 @@ unset($_SESSION['rowId']);
 										      </div>
 										      <div class="modal-footer">
 										        <button type="button" class="btn btn-default" data-dismiss="modal">No, volver</button>
-										        <a href="admin.php?editar='.$_GET['editar'].'&borrarpregunta='.$preguntas[$num]['id'].'"><button type="button" class="btn btn-primary btn-danger">S&iacute, borrar</button></a>
+										        <a href="admin.php?editar='.$_GET['editar'].'&borrarpregunta='.$preguntas['id'].'"><button type="button" class="btn btn-primary btn-danger">S&iacute, borrar</button></a>
 										      </div>
 										    </div>
 										  </div>
 										</div>';
 								echo '</td>';
 							echo '</tr>';
-
-							//Pass the row id on the database to the hanlder, so it knows wich row to update
-							$_SESSION['rowId'][$num] = $preguntas[$num]['id'];
-
 							$num++;
 						}
-
 					echo '</table><br>';
 					echo '<center><input type="submit" value="Enviar" name="editar"></center>';
 					?>

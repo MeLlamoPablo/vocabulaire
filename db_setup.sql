@@ -1,5 +1,5 @@
 -- 1. Create a database called 'vocabulaire', without quotes
--- 2. Copy and paste this entire file into your 'SQL' tab in PhpMyAdmin
+-- 2. Copy and paste this entire file into your 'Import' tab in PhpMyAdmin
 -- 3. Configure 'connect.php'
 
 -- phpMyAdmin SQL Dump
@@ -7,7 +7,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 18-05-2015 a las 19:05:09
+-- Tiempo de generación: 04-04-2015 a las 12:21:31
 -- Versión del servidor: 5.6.21
 -- Versión de PHP: 5.6.3
 
@@ -27,7 +27,8 @@ SET time_zone = "+00:00";
 CREATE TABLE IF NOT EXISTS `examenes` (
 `id` int(11) NOT NULL,
   `nombre` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `activa` int(1) NOT NULL DEFAULT '0'
+  `activa` int(1) NOT NULL DEFAULT '0',
+  `preguntas` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `examenes` (
 
 CREATE TABLE IF NOT EXISTS `preguntas` (
 `id` int(11) NOT NULL,
+  `num` int(11) NOT NULL,
   `examen` int(11) NOT NULL,
   `esp` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `fra` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
