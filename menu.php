@@ -3,7 +3,7 @@
 
 <div class="navbar navbar-default navbar-fixed-top">
 	<div class="container">
-		<div class="navbar-brand">L&#39;app du vocabulaire<span style="vertical-align: sub; font-size:60%;">ßeta</span></div>
+		<div class="navbar-brand">L&#39;app du vocabulaire</div>
 		<button class="navbar-toggle" data-toggle="collapse" data-target=".navHeaderCollapse">
 			<span class="icon-bar"></span>
 			<span class="icon-bar"></span>

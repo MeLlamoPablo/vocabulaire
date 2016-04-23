@@ -302,69 +302,8 @@ if(isset($_GET['failureMode'])){
 		?>
 		<div class="navbar navbar-default <?php if(isset($footer_fixed) AND $footer_fixed){ echo 'navbar-fixed-bottom'; } ?>">
 			<div class="container">
-				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.2.1ß</a>. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
+				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.3</a>. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
 			</div>
 		</div>
-		<!-- Changelog -->
-		<div class="modal fade" id="changelogModal" tabindex="-1" role="dialog" aria-labelledby="changelogModal" aria-hidden="true">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title" id="myModalLabel">Changelog</h4>
-					</div>
-					<div class="modal-body">
-						<ul>
-							<li>v2.2.1ß (18/05/15)
-								<ul>
-									<li>Eliminadas funciones declaradas obsoletas por PHP.</li>
-									<li>Optimización de código</li>
-									<li>Mejorada la función para exportar</li>
-									<li>El modo "recomenzar con fallos" ya no dice la nota.</li>
-								</ul>
-							</li>
-							<li>v2.2ß (12/05/15)
-								<ul>
-									<li>Añadida funcionalidad para importar y exportar en el backend.</li>
-								</ul>
-							</li>
-							<li>v2.1.1ß (11/05/15)
-								<ul>
-									<li>Arreglo de bugs y mejoras en el backend.</li>
-								</ul>
-							</li>
-							<li>v2.1ß (05/4/15)
-								<ul>
-									<li>A&ntilde;adida la funci&oacute;n "recomenzar con fallos".</li>
-								</ul>
-							</li>
-							<li>v2.0.1ß (29/3/15)
-								<ul>
-									<li>Mejorada la codificaci&oacute;n de caracteres.</li>
-									<li>Arreglado un bug de dise&ntilde;o que hac&iacute;a que el footer tapara contenido en la pantalla de correcci&oacute;n.</li>
-									<li>Cambios est&eacute;ticos menores.</li>
-								</ul>
-							</li>
-							<li>v2.0ß
-								<ul>
-									<li>A&ntilde;adido un modo administrador.</li>
-									<li>C&oacute;digo optimizado.</li>
-									<li>Primera versi&oacute;n beta.</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-					</div>
-				</div>
-			</div>
-		</div>
-		<script type="text/javascript">
-			//Initialize bootstrap tooltips
-			$(function () {
-			  $('[data-toggle="tooltip"]').tooltip()
-			})
-		</script>
 	</body>
 </html>
