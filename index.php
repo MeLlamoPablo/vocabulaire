@@ -291,6 +291,12 @@ if(isset($_GET['failureMode'])){
 						//Offer the failure only mode if there is at least 1 mistake
 						if($bad != 0){
 							echo '<a class="btn btn-default" href="index.php?examen='.$_SESSION['examen'].'&failureMode" data-toggle="tooltip" data-placement="bottom" title="Si tu cliques sur ce bouton, on te demandera seulement les questions que tu as rat&eacute;. On ignorera les succ&egrave;s.">Recommen&ccedil;er seulement avec les erreurs</a>';
+							//Bootstrap tooltip opt-in
+							echo '<script>
+									$(function () {
+									  $(\'[data-toggle="tooltip"]\').tooltip()
+									})
+								  </script>';
 						}
 						?>
 					</div>
@@ -302,7 +308,7 @@ if(isset($_GET['failureMode'])){
 		?>
 		<div class="navbar navbar-default <?php if(isset($footer_fixed) AND $footer_fixed){ echo 'navbar-fixed-bottom'; } ?>">
 			<div class="container">
-				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. <a data-toggle="modal" data-target="#changelogModal">v2.3</a>. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
+				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. v2.3. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
 			</div>
 		</div>
 	</body>

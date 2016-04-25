@@ -6,11 +6,12 @@ require_once 'connect.php';
 //Si se ha iniciado sesión
 if(isset($_POST['login'])){
 	//Saneamos el input de usuario
-	$username = $mysqli->real_escape_string($_POST['username']);
+	$username = $mysqli->real_escape_string(htmlentities($_POST['username']));
 
 	$password_hash = $mysqli->query("SELECT pass FROM usuarios WHERE usuario = '".$username."';")->fetch_assoc()['pass'];
 	if(password_verify($_POST['password'], $password_hash)){
 		$_SESSION['administration'] = TRUE;
+		$_SESSION['username'] = $username;
 
 		//password_hash() con el parámetro PASSWROD_DEFAULT está sujeto a cambios conforme nuevas versiones de PHP
 		//son lanzadas. password_needs_rehash() puede determinar si existe un mejor algoritmo de hashing. Para
@@ -23,6 +24,15 @@ if(isset($_POST['login'])){
 	}else{
 		$error = TRUE;
 	}
+}
+
+//Si se ha cerrado sesión
+if(isset($_GET['logout'])){
+	$_SESSION['administration'] = FALSE;
+	unset($_SESSION['username']);
+
+	//Redireccionar a la misma pagina sin la variable &logout en la URL
+	die('<meta http-equiv="refresh" content="0; url=admin.php" />');
 }
 
 if(isset($_GET['activar']) && isset($_SESSION['administration']) AND $_SESSION['administration'] === TRUE){
@@ -251,137 +261,147 @@ unset($_SESSION['rowId']);
 					window.location = "admin.php?borrarusr=" + id;
 			}
 			</script>
-			<div class="container" id="principal">
-				<h2 style="margin-top: 55px;">Administraci&oacute;n</h2>
-				<?php if(isset($_GET['msg'])){
-					switch($_GET['msg']){
-						case '1':
-							echo '<div class="alert alert-success alert-dismissible" role="alert">';
-								echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-								echo '<strong>Los cambios se han guardado correctamente.</strong>';
-							echo '</div>';
-							break;
+			<div class="container" id="principal" style="margin-top: 55px;">
+				<h2>Administraci&oacute;n</h2>
+				<div class="row">
+					<div class="col-md-9">
+						<?php if(isset($_GET['msg'])){
+							switch($_GET['msg']){
+								case '1':
+									echo '<div class="alert alert-success alert-dismissible" role="alert">';
+										echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+										echo '<strong>Los cambios se han guardado correctamente.</strong>';
+									echo '</div>';
+									break;
 
-						case '2':
-							echo '<div class="alert alert-success alert-dismissible" role="alert">';
-								echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-								echo '<strong>Se ha importado un examen correctamente.</strong>';
-							echo '</div>';
-							break;
-					}
-				} ?>
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h3 class="panel-title">
-							<span class="glyphicon glyphicon-file" aria-hidden="true"></span>
-							Gestor de ex&aacute;menes
-						</h3>
-					</div>
-					<div class="panel-body">
-						<p>Desede aqu&iacute; se pueden crear ex&aacute;menes o modificar los existentes. Los ex&aacute;menes activos son accesibles por todo el mundo, mientras que los inactivos solo son accesibles desde la administraci&oacute;n.</p>
-		
-						<table class="table table-hover">
-							<thead>
-								<tr>
-									<td><b>#</b></td>
-									<td><b>Nombre</b></td>
-									<td><b>Opciones</b></td>
-								</tr>
-							</thead>
-							<tbody>
-								<?php
-								$r = $mysqli->query("SELECT * FROM examenes ORDER BY activa DESC");
-								while($f = $r->fetch_assoc()){
-									echo '<tr>';
-										echo '<td>'.$f['id'].'</td>';
-										echo '<td>'.$f['nombre'].(($f['activa'] == 1) ? ' <i>(activo)</i>' : '').'</td>';
-										echo '<td>';
-											echo ($f['activa'] == 1) ? '<a href="admin.php?desactivar='.$f['id'].'">Desactivar</a>' : '<a href="admin.php?activar='.$f['id'].'">Activar</a>';
-											echo ' - <a href="admin.php?editar='.$f['id'].'">Editar</a>';
-											echo ' - <a href="export.php?examen='.$f['id'].'" download="'.$f['nombre'].'.json">Exportar</a>';
-											echo ' - <a href="#" onclick="javascript:confirmar_borrar_examen('.$f['id'].')">Borrar</a>';
-										echo '</td>';
-									echo '</tr>';
-								}
-								?>
-								<?php
-								$r = $mysqli->query("SELECT * FROM usuarios");
-								while($f = $r->fetch_assoc()){
-									
-								}
-								?>
-							</tbody>
-						</table>
-						<p><a href="admin.php?crear">Crear un nuevo examen</a></p>
-					</div>
-				</div>
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h3 class="panel-title">
-							<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
-							Importador de ex&aacute;menes
-						</h3>
-					</div>
-					<div class="panel-body">
-						<form action="import.php" method="post" enctype="multipart/form-data">
-							<p>Los archivos que se pueden importar son los generados al hacer click en el bot&oacute;n "Exportar". Estos archivos terminan en <i>.json</i></p>
-							<input type="file" id="jsonFile" name="jsonFile"><br>
-							<input type="submit" value="Importar" name="submit">
-						</form>
-					</div>
-				</div>
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h3 class="panel-title">
-							<span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-							Gestor de usuarios
-						</h3>
-					</div>
-					<div class="panel-body">
-						<p>Desde aqu&iacute; se pueden crear y eliminar usuarios con acceso de administrador.</p>
+								case '2':
+									echo '<div class="alert alert-success alert-dismissible" role="alert">';
+										echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+										echo '<strong>Se ha importado un examen correctamente.</strong>';
+									echo '</div>';
+									break;
+							}
+						} ?>
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title">
+									<span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+									Gestor de ex&aacute;menes
+								</h3>
+							</div>
+							<div class="panel-body">
+								<p>Desede aqu&iacute; se pueden crear ex&aacute;menes o modificar los existentes. Los ex&aacute;menes activos son accesibles por todo el mundo, mientras que los inactivos solo son accesibles desde la administraci&oacute;n.</p>
+				
+								<table class="table table-hover">
+									<thead>
+										<tr>
+											<td><b>#</b></td>
+											<td><b>Nombre</b></td>
+											<td><b>Opciones</b></td>
+										</tr>
+									</thead>
+									<tbody>
+										<?php
+										$r = $mysqli->query("SELECT * FROM examenes ORDER BY activa DESC");
+										while($f = $r->fetch_assoc()){
+											echo '<tr>';
+												echo '<td>'.$f['id'].'</td>';
+												echo '<td>'.$f['nombre'].(($f['activa'] == 1) ? ' <i>(activo)</i>' : '').'</td>';
+												echo '<td>';
+													echo ($f['activa'] == 1) ? '<a href="admin.php?desactivar='.$f['id'].'">Desactivar</a>' : '<a href="admin.php?activar='.$f['id'].'">Activar</a>';
+													echo ' - <a href="admin.php?editar='.$f['id'].'">Editar</a>';
+													echo ' - <a href="export.php?examen='.$f['id'].'" download="'.$f['nombre'].'.json">Exportar</a>';
+													echo ' - <a href="#" onclick="javascript:confirmar_borrar_examen('.$f['id'].')">Borrar</a>';
+												echo '</td>';
+											echo '</tr>';
+										}
+										?>
+										<?php
+										$r = $mysqli->query("SELECT * FROM usuarios");
+										while($f = $r->fetch_assoc()){
+											
+										}
+										?>
+									</tbody>
+								</table>
+								<p><a href="admin.php?crear">Crear un nuevo examen</a></p>
+							</div>
+						</div>
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title">
+									<span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
+									Importador de ex&aacute;menes
+								</h3>
+							</div>
+							<div class="panel-body">
+								<form action="import.php" method="post" enctype="multipart/form-data">
+									<p>Los archivos que se pueden importar son los generados al hacer click en el bot&oacute;n "Exportar". Estos archivos terminan en <i>.json</i></p>
+									<input type="file" id="jsonFile" name="jsonFile"><br>
+									<input type="submit" value="Importar" name="submit">
+								</form>
+							</div>
+						</div>
+						<div class="panel panel-default">
+							<div class="panel-heading">
+								<h3 class="panel-title">
+									<span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+									Gestor de usuarios
+								</h3>
+							</div>
+							<div class="panel-body">
+								<p>Desde aqu&iacute; se pueden crear y eliminar usuarios con acceso de administrador.</p>
 
-						<table class="table table-hover">
-							<thead>
-								<tr>
-									<td><b>#</b></td>
-									<td><b>Nombre de usuario</b></td>
-									<td><b>Opciones</b></td>
-								</tr>
-							</thead>
-							<tbody>
-								<?php
-								$r = $mysqli->query("SELECT * FROM usuarios");
-								while($f = $r->fetch_assoc()){
-									echo '<tr>';
-										echo '<td>'.$f['id'].'</td>';
-										echo '<td>'.$f['usuario'].'</td>';
-										echo '<td><a href="#" onclick="javascript:confirmar_borrar_usuario('.$f['id'].')">Borrar usuario</a></td>';
-									echo '</tr>';
-								}
-								?>
-							</tbody>
-						</table>
+								<table class="table table-hover">
+									<thead>
+										<tr>
+											<td><b>#</b></td>
+											<td><b>Nombre de usuario</b></td>
+											<td><b>Opciones</b></td>
+										</tr>
+									</thead>
+									<tbody>
+										<?php
+										$r = $mysqli->query("SELECT * FROM usuarios");
+										while($f = $r->fetch_assoc()){
+											echo '<tr>';
+												echo '<td>'.$f['id'].'</td>';
+												echo '<td>'.$f['usuario'].'</td>';
+												echo '<td><a href="#" onclick="javascript:confirmar_borrar_usuario('.$f['id'].')">Borrar usuario</a></td>';
+											echo '</tr>';
+										}
+										?>
+									</tbody>
+								</table>
 
-						<form action="admin.php" method="POST" class="well form-inline">
-							<h4>A&ntilde;adir nuevo usuario</h4>
-							<p>Los usuarios que se a&ntilde;adan tendr&aacute;n permisos para crear y borrar otros usuarios, y crear, borrar, importar y exportar ex&aacute;menes.</p>
-							<div class="form-group">
-								<label for="username" class="sr-only">Nombre de usuario</label>
-								<input placeholder="Nombre de usuario" id="username" name="username" type="text" class="form-control"></input> 
+								<form action="admin.php" method="POST" class="well form-inline">
+									<h4>A&ntilde;adir nuevo usuario</h4>
+									<p>Los usuarios que se a&ntilde;adan tendr&aacute;n permisos para crear y borrar otros usuarios, y crear, borrar, importar y exportar ex&aacute;menes.</p>
+									<div class="form-group">
+										<label for="username" class="sr-only">Nombre de usuario</label>
+										<input placeholder="Nombre de usuario" id="username" name="username" type="text" class="form-control"></input> 
+									</div>
+									<div class="form-group">
+										<label for="password" class="sr-only">Contrase&ntilde;a</label>
+										<input placeholder="Contrase&ntilde;a" id="password" name="password" type="password" class="form-control"></input>
+									</div>
+									<div class="form-group">
+										<label for="password_confirm" class="sr-only">Confirmar contrase&ntilde;a</label>
+										<input placeholder="Confirmar contrase&ntilde;a" id="password_confirm" name="password_confirm" type="password" class="form-control"></input>
+									</div>
+									<button type="submit" name="crear_usuario" class="btn btn-default">Enviar</button>
+								</form>
 							</div>
-							<div class="form-group">
-								<label for="password" class="sr-only">Contrase&ntilde;a</label>
-								<input placeholder="Contrase&ntilde;a" id="password" name="password" type="password" class="form-control"></input>
-							</div>
-							<div class="form-group">
-								<label for="password_confirm" class="sr-only">Confirmar contrase&ntilde;a</label>
-								<input placeholder="Confirmar contrase&ntilde;a" id="password_confirm" name="password_confirm" type="password" class="form-control"></input>
-							</div>
-							<button type="submit" name="crear_usuario" class="btn btn-default">Enviar</button>
-						</form>
-					</div>
-				</div>
-			</div>
+						</div>
+					</div><!-- .col-md-9 -->
+					<div class="col-md-3">
+						<div class="well">
+							<p>Sesi&oacute;n iniciada como <b><?php echo $_SESSION['username'] ?></b>.<br>
+							<a href="admin.php?logout">Cerrar sesi&oacute;n</a>.</p>
+						</div>
+					</div><!-- .col-md-3 -->
+				</div><!-- .row -->
+			</div><!-- .container -->
 		<?php endif; ?> 
 	<?php else: ?>
 		<div class="section">
