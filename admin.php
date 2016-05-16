@@ -17,7 +17,7 @@ if(isset($_POST['login'])){
 		//son lanzadas. password_needs_rehash() puede determinar si existe un mejor algoritmo de hashing. Para
 		//emplearlo necesitamos la contraseña en texto plano, por lo que esta comprobación solo se puede usar en
 		//el momento del login.
-		if(password_needs_rehash($password, PASSWORD_DEFAULT)){
+		if(password_needs_rehash($password_hash, PASSWORD_DEFAULT)){
 			$password_newHash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 			$mysqli->query("UPDATE usuarios SET `pass` = '".$password_newHash."' WHERE `usuario` = '".$username."'");
 		}

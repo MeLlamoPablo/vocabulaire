@@ -16,7 +16,7 @@ if(isset($_GET['examen'])){
 	//Single export
 
 	//Version:
-	$version = '2.3';
+	$version = '2.3.1';
 
 	//Get data from examenes
 	$resultado = $mysqli->query("SELECT * FROM examenes WHERE id = ".$_GET['examen']);
