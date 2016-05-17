@@ -1,5 +1,6 @@
 <script src="js/jquery.js"></script>
 <script src="js/bootstrap.min.js"></script>
+<script src="jquery.are-you-sure.js"></script>
 
 <div class="navbar navbar-default navbar-fixed-top">
 	<div class="container">

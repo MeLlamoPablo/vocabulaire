@@ -1,17 +1,34 @@
 <?php
-//TODO ability to edit the name of an exam
-session_start();
 require_once 'connect.php';
+
+session_start();
+//Max session length: 1 hour.
+if(isset($_SESSION['administration']) && $_SESSION['administration'] === TRUE && isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 60*60)){
+    session_unset();
+    session_destroy();
+    session_start();
+
+    $_GET['msg'] = 3; //La sesión ha caducado.
+}
+$_SESSION['last_activity'] = time();
+
+//If the user is logged in, generate a new valid session token
+if(isset($_SESSION['administration']) && $_SESSION['administration'] === TRUE && isset($_SESSION['userid']) && isset($_SESSION['username'])){
+	$_SESSION['token'] = md5(time() . $_SESSION['username']);
+	$mysqli->query("UPDATE usuarios SET token = '".$_SESSION['token']."', token_time = '".time()."' WHERE id = ".$_SESSION['userid']);
+}
 
 //Si se ha iniciado sesión
 if(isset($_POST['login'])){
 	//Saneamos el input de usuario
 	$username = $mysqli->real_escape_string(htmlentities($_POST['username']));
 
-	$password_hash = $mysqli->query("SELECT pass FROM usuarios WHERE usuario = '".$username."';")->fetch_assoc()['pass'];
+	$r = $mysqli->query("SELECT id, pass FROM usuarios WHERE usuario = '".$username."';")->fetch_assoc();
+	$password_hash = $r['pass'];
 	if(password_verify($_POST['password'], $password_hash)){
 		$_SESSION['administration'] = TRUE;
 		$_SESSION['username'] = $username;
+		$_SESSION['userid'] = $r['id'];
 
 		//password_hash() con el parámetro PASSWROD_DEFAULT está sujeto a cambios conforme nuevas versiones de PHP
 		//son lanzadas. password_needs_rehash() puede determinar si existe un mejor algoritmo de hashing. Para
@@ -21,8 +38,12 @@ if(isset($_POST['login'])){
 			$password_newHash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 			$mysqli->query("UPDATE usuarios SET `pass` = '".$password_newHash."' WHERE `usuario` = '".$username."'");
 		}
+
+		//Almacenar la sesión
+		$_SESSION['token'] = md5(time() . $username);
+		$mysqli->query("UPDATE usuarios SET token = '".$_SESSION['token']."', token_time = '".time()."' WHERE id = ".$r['id']);
 	}else{
-		$error = TRUE;
+		$_GET['msg'] = 4; //Error al iniciar sesión
 	}
 }
 
@@ -64,45 +85,6 @@ if(isset($_SESSION['administration']) && $_SESSION['administration'] === TRUE &&
 	die('<meta http-equiv="refresh" content="0; url=admin.php" />');
 }
 
-//Si se ha creado un examen
-if(isset($_POST['crear']) && isset($_SESSION['administration']) AND $_SESSION['administration'] === TRUE){
-	$mysqli->query("INSERT INTO examenes (`nombre`) VALUES ('".htmlentities(mysqli_real_escape_string($mysqli, $_POST['titulo']))."');");
-	die('<meta http-equiv="refresh" content="0; url=admin.php?editar='.$mysqli->insert_id.'&numOfQuestions='.$_POST['numero'].'" />');
-}
-
-//Si se ha editado un examen
-if(isset($_POST['editar']) && isset($_SESSION['administration']) AND $_SESSION['administration'] === TRUE){
-	$examen = $_SESSION['examen'];
-
-	//Comprobar si el examen se está editando por primera vez o no
-	$resultado = $mysqli->query("SELECT id FROM preguntas WHERE examen = ".$examen['id']." LIMIT 1");
-	$preguntas = $resultado->fetch_assoc();
-	if(isset($preguntas['id'])){
-		$num = 0;
-		while($num < $_SESSION['num_rows']){
-			$mysqli->query("UPDATE preguntas SET `examen` = ".$examen['id'].", `esp` = '".htmlentities(mysqli_real_escape_string($mysqli, $_POST['esp'.$num]), ENT_QUOTES, "UTF-8")."', `fra` = '".htmlentities(mysqli_real_escape_string($mysqli, $_POST['fra'.$num]), ENT_QUOTES, "UTF-8")."', `modo` = ".$_POST['modo'.$num]." WHERE id = ".$_SESSION['rowId'][$num]);
-			$num++;
-		}
-	}else{
-		$num = 0;
-		while($num < $_SESSION['numOfQuestions']){
-			$mysqli->query("INSERT INTO preguntas (`examen`,`esp`,`fra`,`modo`) VALUES (".$examen['id'].", '".htmlentities(mysqli_real_escape_string($mysqli, $_POST['esp'.$num]), ENT_QUOTES, "UTF-8")."', '".htmlentities(mysqli_real_escape_string($mysqli, $_POST['fra'.$num]), ENT_QUOTES, "UTF-8")."', ".$_POST['modo'.$num].");");
-			$num++;
-		}
-	}
-
-	$_GET['msg'] = 1;
-}
-
-//Si se ha dado la orden de borrar una pregunta
-if(isset($_GET['editar']) && isset($_GET['borrarpregunta']) && isset($_SESSION['administration']) AND $_SESSION['administration'] === TRUE){
-	//Borrar pregunta
-	$mysqli->query("DELETE FROM preguntas WHERE id = ".$_GET['borrarpregunta']);
-
-	//Redireccionar a la misma pagina sin la variable &borrarpregunta en la URL
-	die('<meta http-equiv="refresh" content="0; url=admin.php?editar='.$_GET['editar'].'" />');
-}
-
 //Si se ha dado la orden de borrar un examen
 if(isset($_SESSION['administration']) && $_SESSION['administration'] === TRUE && isset($_GET['borrarex']) && is_numeric($_GET['borrarex'])){
 	//Borrar examen
@@ -112,11 +94,6 @@ if(isset($_SESSION['administration']) && $_SESSION['administration'] === TRUE &&
 	//Redireccionar a la misma pagina sin la variable &borrarex en la URL
 	die('<meta http-equiv="refresh" content="0; url=admin.php" />');
 }
-
-unset($_SESSION['examen']);
-unset($_SESSION['numOfQuestions']);
-unset($_SESSION['num_rows']);
-unset($_SESSION['rowId']);
 ?>
 
 <!DOCTYPE html>
@@ -125,24 +102,12 @@ unset($_SESSION['rowId']);
 	<title>L&#39;app du vocabulaire</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href="css/bootstrap.min.css" rel="stylesheet">
-	<link href="styles.css" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
 </head>
 <body> <!-- style="margin-top: 51px;" -->
 	<?php $active = 2; include 'menu.php';
 	if(isset($_SESSION['administration']) AND $_SESSION['administration'] === TRUE): ?>
-		<?php if(isset($_GET['crear'])): ?>
-			<div class="container jumbotron">
-				<h2>Crear nuevo examen</h2>
-				<p>Cuando se crea un nuevo examen, por defecto estar&aacute; inactivo, es decir, solo se podr&aacute; acceder desde la administraci&oacute;n. Cuando se haya terminado de modificar, se podr&aacute; marcar como activo para que pueda ser accesible por todo el mundo.</p>
-				<form style="padding-left: 15px;" method="post" action="admin.php">
-					<label for="titulo">T&iacute;tulo: </label>
-					<input type="text" name="titulo" id="titulo" style="width: 300px" required><br>
-					<label for="numero">N&uacute;mero de palabras preguntadas: </label>
-					<input type="number" name="numero" id="numero" value="1" min="1" required>
-					<input type="submit" value="Enviar" name="crear">
-				</form>
-			</div>
-		<?php elseif(isset($_GET['editar'])): ?>
+		<?php if(isset($_GET['editar'])): ?>
 			<?php
 			//Si se ha dado la orden de añadir una pregunta
 			if(isset($_GET['anyadir'])){
@@ -150,105 +115,291 @@ unset($_SESSION['rowId']);
 				$mysqli->query("INSERT INTO preguntas (`examen`,`esp`,`fra`,`modo`) VALUES (".$_GET['editar'].", '', '');");
 			}
 
-			$resultado = $mysqli->query("SELECT * FROM examenes WHERE id = ".$_GET['editar']);
-			$examen = $resultado->fetch_assoc();
-			$_SESSION['examen'] = $examen;
+			//If _GET['editar'] is an empty string, we need to create the exam instead of just editing it.
+			if($_GET['editar'] === ''){
+				$creating = TRUE;
+			}else{
+				$creating = FALSE;
+
+				//Sanitize input first
+				if(!is_numeric($_GET['editar'])) die('El examen que se desea editar no es válido<meta http-equiv="refresh" content="3; url=admin.php" />');
+
+				$data = array();
+				if($examen = $mysqli->query("SELECT * FROM examenes WHERE id = ".$_GET['editar'])->fetch_assoc()){
+					$preguntas = $mysqli->query("SELECT esp, fra, modo FROM preguntas WHERE examen = ".$examen['id'])->fetch_all(MYSQLI_ASSOC);
+					$data['id'] = $examen['id'];
+					$data['name'] = $examen['nombre'];
+					$data['questions'] = $preguntas;
+				}else{
+					die('El examen que se desea editar no es válido<meta http-equiv="refresh" content="3; url=admin.php" />');
+				}
+			}
 			?>
 			<script type="text/javascript">
-				function confirmar_volver_atras() {
-				    if (confirm('Si vuelves atrás, se perderán todos los cambios no guardados. Usa el botón "Enviar" para guardar los cambios.'))
-						window.location = "admin.php";
-				}
-			</script>
-			<div class="container jumbotron">
-				<h2>Editar <i><?php echo $examen['nombre'] ?></i></h2>
-				<p>Desde aqu&iacute; se pueden editar las palabras que se preguntar&aacute;n en el examen.</p>
-				<form style="padding-left: 15px;" method="post" action="admin.php">
-					<?php
-					$num = 0;
-					echo '<table style="width: 75%;">';
-						echo '<tr>';
-							echo '<td><center>En franc&eacute;s</center></td>';
-							echo '<td><center>En espa&ntilde;ol</center></td>';
-							echo '<td><center>Modo</center></td>';
-							echo '<td></td>';
-						echo '</tr>';
+				var used_ids = [];
+				var deleted_rows = [];
+				var modes = {};
+				<?php echo ($creating) ? '' : 'var exam = JSON.parse(\''.json_encode($data).'\');' ?>
+				var creating = <?php echo ($creating) ? 'true' : 'false'; ?>;
+				var userid = <?php echo $_SESSION['userid'] ?>;
+				var session_token = '<?php echo $_SESSION['token'] ?>';
+				var examid;
 
-						//If the exam is just created, add empty rows
-						if(isset($_GET['numOfQuestions'])){
-							while($num < $_GET['numOfQuestions']){
-								echo '<tr>';
-									echo '<td><center><input required type="text" name="esp'.$num.'" style="width: 95%;"></center</td>';
-									echo '<td><center><input required type="text" name="fra'.$num.'" style="width: 95%;"></center</td>';
-									echo '<td><center><select name="modo'.$num.'" style="width: 95%;">
-										  <option value="1" selected="selected">Se puede pedir en franc&eacute;s y en espa&ntilde;ol</option>
-										  <option value="2">Se pide siempre en espa&ntilde;ol</option>
-										  <option value="3">Se pide siempre en franc&eacute;s</option>
-										</select></center></td>';
-									echo '<td>';
-									echo '</td>';
-								echo '</tr>';
-								$num++;
+				function addRow(fra = '', esp = '', mode = 1, id = used_ids.length) {
+					if(used_ids.indexOf(id) === -1){
+						//The id used is not duplicate
+						$('#editor').append(`
+							<tr id="row${id}">
+								<td><input class="form-control" required type="text" name="fra${id}" style="width: 95%;" data-required="true" value="${fra}"></td>
+								<td><input class="form-control" required type="text" name="esp${id}" style="width: 95%;" data-required="true" value="${esp}"></td>
+								<td>
+									<div class="dropdown" id="dropdown${id}">
+										<button class="btn btn-default dropdown-toggle" type="button" id="dropdown${id}_button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+											<span id="dropdown${id}_title">Se puede pedir en franc&eacute;s y en espa&ntilde;ol</span>
+											<span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" aria-labelledby="dropdown${id}_button">
+											<li><a href="#" class="dropdownOption" id="dropdown${id}_mode1">Se puede pedir en franc&eacute;s y en espa&ntilde;ol</a></li>
+											<li><a href="#" class="dropdownOption" id="dropdown${id}_mode2">Se pide siempre en espa&ntilde;ol</a></li>
+											<li><a href="#" class="dropdownOption" id="dropdown${id}_mode3">Se pide siempre en franc&eacute;s</a></li>
+										</ul>
+									</div>
+								</td>
+								<td>
+									<button type="button" class="btn btn-primary btn-xs btn-danger" id="delete${id}" onclick="deleteRow(${id})"
+										    data-toggle="tooltip" data-placement="right" title="Borrar palabra">
+										<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+									</button>
+									<button style="display: none;" type="button" class="btn btn-primary btn-xs btn-success" id="undelete${id}" onclick="undeleteRow(${id})"
+										    data-toggle="tooltip" data-placement="right" title="Conservar palabra">
+										<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+									</button>
+								</td>
+							</tr>
+						`);
+
+						//We have to do this every time we add a new dropdownOption.
+						$('.dropdownOption').click(event, onDropdownOptionClick);
+						$('#dropdown' + id + '_mode' + mode).click(); //Set default mode
+						$('[data-toggle="tooltip"]').tooltip();
+
+						used_ids.push(id);
+
+						return true;
+					}else{
+						console.error('Could not add row with id ' + id + '. That id is duplicate.');
+						return false;
+					}
+						
+				}
+
+				function deleteRow(id){
+					if($.inArray(id, used_ids) !== -1){
+						if($('[name="fra' + id +'"]').val() !== ""
+						   || $('[name="esp' + id +'"]').val() !== ""
+						   || modes[id] !== 1){
+							//If the row is not empty, it won't be deleted
+							//Instead, it will be marked in red. Upon saving changes, the rows will be permanently deleted.
+
+							$('#row' + id).addClass('danger');
+							$('[name="fra' + id +'"], [name="esp' + id +'"]').attr('disabled', true);
+							$('#dropdown' + id + ' > button').addClass('disabled');
+							$('#delete' + id).css('display', 'none'); $('#undelete' + id).css('display', 'block');
+
+							deleted_rows.push(id);
+						}else{
+							//If the row is empty, just delete it
+							$('#row' + id).remove();
+
+							//Also delete the default value from modes
+							delete modes[id];
+						}
+
+						$('#main_form').trigger('rescan.areYouSure');
+						return true;
+					}else{
+						console.error('Could not remove row with id ' + id + '. That row does not exist.');
+						return false;
+					}
+				}
+
+				function undeleteRow(id){
+					var index = deleted_rows.indexOf(id);
+					if(index !== -1){
+						deleted_rows.splice(index, 1);
+
+						$('#row' + id).removeClass('danger');
+						$('[name="fra' + id +'"], [name="esp' + id +'"]').attr('disabled', false);
+						$('#dropdown' + id + ' > button').removeClass('disabled');
+						$('#delete' + id).css('display', 'block'); $('#undelete' + id).css('display', 'none');
+
+						return true;
+					}else{
+						console.error('Could not undelete row with id ' + id + '. That row does not exist or is not marked as deleted.')
+						return false;
+					}
+				}
+
+				function onDropdownOptionClick(event){
+					var regex = /dropdown([0-9]+)_mode([0-9]+)/;
+					var matches = event.target.id.match(regex);
+					modes[matches[1]] = +matches[2]; //The first match is the number of the row where the dropdown value was modified. 
+													 //The second match is the dropdown value itself. We convert that from string to int.
+
+					$('#dropdown' + matches[1] + '_title').html(event.target.text); //Change the dropdown title to the new option.
+
+					//Workaround for jQuery.areYouSure not listening to dropdown changes.
+					$('#workaround').val(JSON.stringify(modes));
+					$('#main_form').trigger('rescan.areYouSure');
+				}
+
+				function send(){
+					//Before sending, validate if every input has been filled
+					var filled = true;
+					$('[data-required="true"]').each(function(){
+						if($(this).val() === '' && !$(this).prop('disabled')){
+							filled = false;
+							return false; //This only stpos the iteration, but doesn't make send() return false
+						}
+					});
+
+					if(!filled){
+						alert('Por favor, rellene todos los campos antes de guardar los cambios.')
+						return false;
+					}
+
+					$('#sendButton').button('loading');
+
+					var data = {};
+					data['userid'] = userid;
+					data['token'] = session_token;
+					data['creating'] = creating.toString();
+					data['title'] = $('#exam_title').val();
+					if(!creating) data['examid'] = examid;
+
+					data['questions'] = {}
+					$.each(used_ids, function(k, v){
+						if($.inArray(v, deleted_rows) === -1){
+							data['questions'][v] = {
+								fra: $('[name="fra' + v + '"]').val(),
+								esp: $('[name="esp' + v + '"]').val(),
+								mode: modes[v]
+							}
+						}
+					});
+
+					$.post('examHandler.php', data, function(response){
+						r = JSON.parse(response)
+
+						if(r['success']){
+							$('#main_form').trigger('reinitialize.areYouSure');
+
+							//If we were creating an exam, we now need to enter edit mode
+							creating = false; 
+							examid = r['examid'];
+							$('#titulo_examen').html('Editando <b>' + data['title'] + '</b>');
+
+							//We also need to permanently remove any rows marked as deleted
+							for(var i = 0; i < deleted_rows.length; i++){
+								$('#row' + deleted_rows[i]).remove();
 							}
 
-							//Add numOfQuestions into the session because we need to tell the handler how many rows we want to add
-							$_SESSION['numOfQuestions'] = $_GET['numOfQuestions'];
+							return true;
+						}else{
+							console.error('The form was not saved. Error returned: ' + r['error']);
+
+							localStorage.setItem('vocabapp_last_error', r['error']);
+							localStorage.setItem('vocabapp_last_exam_data', JSON.stringify(data));
+							console.log('In order to minimize damage, the exam data that was intended to be written into' +
+								' the database was saved into the local storage along with the last error message.');
+							console.log('Access it with localStorage.vocabapp_last_exam_data and localStorage.vocabapp_last_error');
+
+							$('#sendButton').removeClass('btn-primary');
+							$('#sendButton').addClass('btn-danger');
+							$('#sendButton').attr('value', 'Ha ocurrido un error :(');
+
+							return false;
 						}
+					});
+				}
 
-						//Get all the exam rows
-						$resultado = $mysqli->query("SELECT * FROM preguntas WHERE examen = ".$_GET['editar']);
-						$preguntas = $resultado->fetch_all(MYSQLI_ASSOC);
+				$(document).ready(function(){
+					if(creating){
+						addRow();
 
-						//Add num_rows into the session because we need to tell the handler how many rows we want to add
-						if(isset($resultado->num_rows)) $_SESSION['num_rows'] = $resultado->num_rows;
-
-						//Add real rows
-						while($num < $resultado->num_rows){
-							echo '<tr>';
-								echo '<td><center><input required type="text" name="esp'.$num.'" style="width: 95%;" value="'.$preguntas[$num]['esp'].'"></center</td>';
-								echo '<td><center><input required type="text" name="fra'.$num.'" style="width: 95%;" value="'.$preguntas[$num]['fra'].'"></center</td>';
-								echo '<td><center><select name="modo'.$num.'" style="width: 95%;">
-									  <option value="1"'; if($preguntas[$num]['modo'] == 1){echo 'selected="selected"';} echo '>Se puede pedir en franc&eacute;s y en espa&ntilde;ol</option>
-									  <option value="2"'; if($preguntas[$num]['modo'] == 2){echo 'selected="selected"';} echo '>Se pide siempre en espa&ntilde;ol</option>
-									  <option value="3"'; if($preguntas[$num]['modo'] == 3){echo 'selected="selected"';} echo '>Se pide siempre en franc&eacute;s</option>
-									</select></center></td>';
-								echo '<td>';
-									//Codigo del boton del modal
-									echo '<button type="button" class="btn btn-primary btn-xs btn-danger" data-toggle="modal" data-target="#pregunta'.$preguntas[$num]['id'].'">
-										  <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-										</button>';
-									//Codigo del modal
-									echo '<div class="modal fade" id="pregunta'.$preguntas[$num]['id'].'" tabindex="-1" role="dialog" aria-labelledby="pregunta'.$preguntas[$num]['id'].'" aria-hidden="true">
-										  <div class="modal-dialog">
-										    <div class="modal-content">
-										      <div class="modal-header">
-										        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-										        <h4 class="modal-title">&iquest;Seguro?</h4>
-										      </div>
-										      <div class="modal-body">
-										        Se va a borrar esta pregunta de la base de datos.
-										      </div>
-										      <div class="modal-footer">
-										        <button type="button" class="btn btn-default" data-dismiss="modal">No, volver</button>
-										        <a href="admin.php?editar='.$_GET['editar'].'&borrarpregunta='.$preguntas[$num]['id'].'"><button type="button" class="btn btn-primary btn-danger">S&iacute, borrar</button></a>
-										      </div>
-										    </div>
-										  </div>
-										</div>';
-								echo '</td>';
-							echo '</tr>';
-
-							//Pass the row id on the database to the hanlder, so it knows wich row to update
-							$_SESSION['rowId'][$num] = $preguntas[$num]['id'];
-
-							$num++;
+						//Set default values for modes and put them in the workaround input. Then rescan.
+						modes[0] = 1; $('#workaround').val(JSON.stringify(modes)); $('#main_form').trigger('rescan.areYouSure');
+					}else{
+						//Insert all data
+						examid = exam.id;
+						$('#exam_title').val(exam.name);
+						for(var i = 0; i < exam.questions.length; i++){
+							addRow(exam.questions[i]['esp'], exam.questions[i]['fra'], exam.questions[i]['modo']);
 						}
+					}
 
-					echo '</table><br>';
-					echo '<center><input type="submit" value="Enviar" name="editar"></center>';
-					?>
-				</form>
-				<p><a href="admin.php?editar=<?php echo $_GET['editar'] ?>&anyadir">Añadir una pregunta</a> | <a href="#" onclick="javascript:confirmar_volver_atras()">Volver atr&aacute;s</a></p>
+					$('#main_form').areYouSure({
+						'message': '¡Atención! Hay cambios no guardados. Si abandona esta página se perderán definitivamente.'
+					});
+
+					$('#main_form').on('dirty.areYouSure', function(){
+						$('#sendButton').removeAttr('disabled');
+						$('#sendButton').attr('value', 'Guardar cambios');
+						$('#sendButton').addClass('btn-primary');
+						$('#sendButton').removeClass('btn-success');
+
+						$('#sendButton').button('reset');
+					});
+				    $('#main_form').on('clean.areYouSure', function(){
+				    	$('#sendButton').attr('disabled', true);
+						$('#sendButton').attr('value', 'Todos los cambios se han guardado');
+						$('#sendButton').removeClass('btn-primary');
+						$('#sendButton').addClass('btn-success');
+				    });
+
+				});
+			</script>
+			<div class="container" style="margin-top: 65px;">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title" id="titulo_examen">
+							<?php echo $creating ? 'Creando un nuevo examen' : 'Editando <b>'.$examen['nombre'].'</b>'; ?>
+						</h3>
+					</div>
+					<div class="panel-body">
+						<p>Desde aqu&iacute; se pueden editar las palabras que se preguntar&aacute;n en el examen.</p>
+						<form id="main_form">
+							<div class="input-group" style="width: 50%; margin-bottom: 10px;">
+								<div class="input-group-addon">Nombre del examen</div>
+								<input type="text" id="exam_title" name="exam_title" class="form-control" data-required="true">
+							</div>
+							<table class="table table-bordered table-striped">
+								<thead style="font-weight: bold">
+									<tr>
+										<td>En franc&eacute;s</center>
+										<td>En espa&ntilde;ol</center>
+										<td>Modo</center>
+										<td></td>
+									</tr>
+								</thead>
+
+								<tbody id="editor"></tbody>
+							</table>
+							<button type="button" class="btn btn-default" onclick="addRow()">
+								<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+								A&ntilde;adir una pregunta
+							</button>
+							<center>
+								<input type="button" class="btn btn-success" onclick="send()" value="Todos los cambios se han guardado" id="sendButton" data-loading-text="Guardando cambios..." disabled>
+								<a href="admin.php" class="btn btn-default" role="button">
+									<span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
+									Volver atr&aacute;s
+								</a>
+							</center>
+							<input style="display: none;" type="text" id="workaround" name="workaround">
+						</form>
+					</div>
+				</div>
 			</div>
 		<?php else: ?>
 			<script>
@@ -324,7 +475,10 @@ unset($_SESSION['rowId']);
 										?>
 									</tbody>
 								</table>
-								<p><a href="admin.php?crear">Crear un nuevo examen</a></p>
+								<a href="admin.php?editar" class="btn btn-default" role="button">
+									<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+									Crear un nuevo examen
+								</a>
 							</div>
 						</div>
 						<div class="panel panel-default">
@@ -404,10 +558,27 @@ unset($_SESSION['rowId']);
 			</div><!-- .container -->
 		<?php endif; ?> 
 	<?php else: ?>
-		<div class="section">
+		<div class="section container">
 			<center>
 			<h2 style="margin-top: 55px;">Acceso al panel de administraci&oacute;n</h2>
-				<?php if(isset($error)) echo '<p>Nomre de usuario o contase&ntilde;a incorrectos</p>'; ?>
+				<?php 
+					if(isset($_GET['msg'])){
+						switch($_GET['msg']){
+							case '3':
+								echo '<div class="alert alert-info alert-dismissible" role="alert">';
+									echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+									echo '<strong>La sesi&oacute;n ha caducado. Por favor, inicie sesi&oacute;n de nuevo.</strong>';
+								echo '</div>';
+								break;
+							case '4':
+								echo '<div class="alert alert-danger alert-dismissible" role="alert">';
+									echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+									echo '<strong>Nomre de usuario o contase&ntilde;a incorrectos.</strong>';
+								echo '</div>';
+								break;
+						}
+					}
+				?>
 				<form action="admin.php" method="POST" class="well form-inline">
 					<div class="form-group">
 						<label for="username" class="sr-only">Nombre de usuario</label>
