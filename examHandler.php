@@ -1,5 +1,9 @@
 <?php
 
+//If there's a PHP error, we don't want PHP to handle it as it will produce a syntax error on the javascript.
+//Instead, we return the PHP error in JSON format.
+set_error_handler("jsonErrorHandler"); //TODO DOESNT WORK
+
 require_once 'connect.php';
 
 //Check if inputs are passed
@@ -74,6 +78,18 @@ if($provided_token === $r['token'] && time() - $r['token_time'] < 60*60){
 
 function error($msg = 'No error was specified.'){
 	die(json_encode(array('success' => FALSE, 'error' => $msg)));
+}
+
+function jsonErrorHandler($errno, $errstr, $errfile, $errline){
+    if (!(error_reporting() & $errno)) {
+        // This error code is not included in error_reporting
+        return;
+    }
+
+    error($errno.': '.$errstr. ' on line '.$errline.' in file '.$errfile);
+
+    /* Don't execute PHP internal error handler */
+    return true;
 }
 
 ?>
