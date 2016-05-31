@@ -2,7 +2,7 @@
 
 //If there's a PHP error, we don't want PHP to handle it as it will produce a syntax error on the javascript.
 //Instead, we return the PHP error in JSON format.
-set_error_handler("jsonErrorHandler"); //TODO DOESNT WORK
+set_error_handler("jsonErrorHandler");
 
 require_once 'connect.php';
 
@@ -10,6 +10,7 @@ require_once 'connect.php';
 if(!isset($_POST['token']))  error('No token was provided.');
 if(!isset($_POST['userid'])) error('No user id was provided.');
 if(!isset($_POST['title']))  error('No exam title was provided.');
+if(!isset($_POST['questions']))  error('No questions were provided. To delete an exam, please go to the admin dashboard.');
 
 //Sanitize inputs
 $provided_token = $mysqli->real_escape_string($_POST['token']);
@@ -36,11 +37,9 @@ if($provided_token === $r['token'] && time() - $r['token_time'] < 60*60){
 		if(!is_numeric($_POST['examid'])) error('Provided exam id is not numeric.');
 		$id = $_POST['examid'];
 
-		if($r = $mysqli->query("SELECT nombre FROM examenes WHERE id = ".$id)){
-			if($r->fetch_assoc()['nombre'] !== $title) $query .= "UPDATE examenes SET nombre = '".$title."' WHERE id = ".$id.";";
-		}else{
-			error('Provided exam id is invalid'); //TODO TEST
-		}
+		$r = $mysqli->query("SELECT nombre FROM examenes WHERE id = ".$id);
+		if($r->num_rows === 0) error('Provided exam id is invalid');
+		if($r->fetch_assoc()['nombre'] !== $title) $query .= "UPDATE examenes SET nombre = '".$title."' WHERE id = ".$id.";";
 
 		//Delete everything we previously had from this exam, then save everything again.
 		//Could this be optimized? Yeah. Do I want to optimize it? Nope.
@@ -86,7 +85,7 @@ function jsonErrorHandler($errno, $errstr, $errfile, $errline){
         return;
     }
 
-    error($errno.': '.$errstr. ' on line '.$errline.' in file '.$errfile);
+    error('PHP ERROR: '.$errstr. ' on line '.$errline.' in file '.$errfile);
 
     /* Don't execute PHP internal error handler */
     return true;

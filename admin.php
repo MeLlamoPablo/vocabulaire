@@ -287,6 +287,15 @@ if(isset($_SESSION['administration']) && $_SESSION['administration'] === TRUE &&
 							}
 						}
 					});
+					
+					//If there are no questions (because every question is set to be deleted), don't send the form.
+					//Let the user know that they can delete the whole exam from the admin dashboard instead.
+					if(Object.getOwnPropertyNames(data['questions']).length === 0){
+						alert('Ha marcado para borrar todas las preguntas del examen. Por favor, si desea borrar ' +
+							'el examen, hágalo desde el panel de administración.');
+						$('#sendButton').button('reset');
+						return false;
+					}
 
 					$.post('examHandler.php', data, function(response){
 						r = JSON.parse(response)
