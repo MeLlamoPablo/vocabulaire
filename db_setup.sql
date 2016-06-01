@@ -1,9 +1,15 @@
+-- 1. Create a database called 'vocabulaire', without quotes
+-- 2. Copy and paste this entire file into your 'SQL' tab in PhpMyAdmin
+-- 3. Configure 'connect.php'
+-- 4. Configure 'config.php'
+-- 5. Log in as "admin", password: "admin". Make sure to create another user and delete the admin one right after.
+
 -- phpMyAdmin SQL Dump
 -- version 4.2.11
 -- http://www.phpmyadmin.net
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 23-05-2016 a las 20:58:27
+-- Tiempo de generación: 01-06-2016 a las 20:13:15
 -- Versión del servidor: 5.6.21
 -- Versión de PHP: 5.6.3
 
@@ -24,6 +30,19 @@ CREATE TABLE IF NOT EXISTS `examenes` (
 `id` int(11) NOT NULL,
   `nombre` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `activa` int(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `login_attempts`
+--
+
+CREATE TABLE IF NOT EXISTS `login_attempts` (
+`id` int(11) NOT NULL,
+  `ip` varchar(45) COLLATE utf8_unicode_ci NOT NULL,
+  `provided_user` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `time` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -58,8 +77,8 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `usuario`, `pass`, `token`, `token_time`) VALUES
-(1, 'admin', '$2y$10$.4TT0EAt5PMwWUeL7Sf4G.DStzttyxM2EIXje1wYYNwOaVdOGavj.', NULL, 0); -- user "admin", pass "admin"
+INSERT INTO `usuarios` (`id`, `usuario`, `pass`) VALUES
+(1, 'admin', '$2y$10$.4TT0EAt5PMwWUeL7Sf4G.DStzttyxM2EIXje1wYYNwOaVdOGavj.'); -- user "admin", pass "admin"
 
 --
 -- Índices para tablas volcadas
@@ -69,6 +88,12 @@ INSERT INTO `usuarios` (`id`, `usuario`, `pass`, `token`, `token_time`) VALUES
 -- Indices de la tabla `examenes`
 --
 ALTER TABLE `examenes`
+ ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `login_attempts`
+--
+ALTER TABLE `login_attempts`
  ADD PRIMARY KEY (`id`);
 
 --
@@ -91,6 +116,11 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `examenes`
 --
 ALTER TABLE `examenes`
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT de la tabla `login_attempts`
+--
+ALTER TABLE `login_attempts`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT de la tabla `preguntas`

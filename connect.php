@@ -2,6 +2,9 @@
 
 //Before connecting the database to the app, make sure you follow the steps on db_setup.sql
 
+require_once 'config.php';
+require_once 'ReCaptcha.php';
+
 //Database config
 $db_host		= 'localhost';
 $db_user		= 'root';

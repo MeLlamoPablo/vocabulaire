@@ -23,7 +23,7 @@ if(!isset($_POST['creating']) OR ($_POST['creating'] != 'true' && $_POST['creati
 
 //Validate the session token
 $r = $mysqli->query("SELECT token, token_time FROM usuarios WHERE id = ".$_POST['userid'])->fetch_assoc();
-if($provided_token === $r['token'] && time() - $r['token_time'] < 60*60){
+if($provided_token === $r['token'] && time() - $r['token_time'] < $GLOBAL_CONFIG['max_session_length']){
 	//The token is valid. Do the thing.
 
 	$query = '';

@@ -15,9 +15,6 @@ if(!isset($_SESSION['administration']) OR !$_SESSION['administration']){
 if(isset($_GET['examen'])){
 	//Single export
 
-	//Version:
-	$version = '2.4';
-
 	//Get data from examenes
 	$resultado = $mysqli->query("SELECT * FROM examenes WHERE id = ".$_GET['examen']);
 	$examen = $resultado->fetch_assoc();
@@ -37,7 +34,7 @@ if(isset($_GET['examen'])){
 	$export = array(
 		'title' => $examen['nombre'],
 		'active' => $examen['activa'],
-		'generatedWithVersion' => $version,
+		'generatedWithVersion' => $GLOBAL_CONFIG['version'],
 		'questions' => $questions);
 
 	//Output the exam in json
@@ -55,7 +52,7 @@ if(isset($_GET['examen'])){
  * @return string The prettified output
  * @author Jay Roberts
  */
-     function _format_json($json, $html = false) {
+function _format_json($json, $html = false) {
 	$tabcount = 0; 
 	$result = ''; 
 	$inquote = false; 

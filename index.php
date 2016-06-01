@@ -308,7 +308,7 @@ if(isset($_GET['failureMode'])){
 		?>
 		<div class="navbar navbar-default <?php if(isset($footer_fixed) AND $footer_fixed){ echo 'navbar-fixed-bottom'; } ?>">
 			<div class="container">
-				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. v2.4. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
+				<p class="navbar-text">Application cr&eacute;&eacute;e par Pablo Rodr&iacute;guez avec l&#39;aide de <a href="http://php.net" target="_blank"><label class="label label-default">PHP</label></a>, <a href="http://jquery.com/" target="_blank"><label class="label label-default">Jquery</label></a> et <a href="http://getbootstrap.com" target="_blank"><label class="label label-default">Bootstrap</label></a>. v<?php echo $GLOBAL_CONFIG['version'] ?>. <a href="https://github.com/MeLlamoPablo/vocabulaire" target="_blank">Code source</a>.</p>
 			</div>
 		</div>
 	</body>
