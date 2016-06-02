@@ -178,9 +178,9 @@ function doWeNeedToShowACaptcha($mysqli, $config, $user, $ip = null){
 							<table class="table table-bordered table-striped">
 								<thead style="font-weight: bold">
 									<tr>
-										<td>En franc&eacute;s</center>
-										<td>En espa&ntilde;ol</center>
-										<td>Modo</center>
+										<td>En espa&ntilde;ol</td>
+										<td>En franc&eacute;s</td>
+										<td>Modo</td>
 										<td></td>
 									</tr>
 								</thead>

@@ -3,13 +3,13 @@ var deleted_rows = [];
 var modes = {};
 var examid;
 
-function addRow(fra = '', esp = '', mode = 1, id = used_ids.length) {
+function addRow(esp = '', fra = '', mode = 1, id = used_ids.length) {
 	if(used_ids.indexOf(id) === -1){
 		//The id used is not duplicate
 		$('#editor').append(`
 			<tr id="row${id}">
-				<td><input class="form-control" required type="text" name="fra${id}" style="width: 95%;" data-required="true" value="${fra}"></td>
 				<td><input class="form-control" required type="text" name="esp${id}" style="width: 95%;" data-required="true" value="${esp}"></td>
+				<td><input class="form-control" required type="text" name="fra${id}" style="width: 95%;" data-required="true" value="${fra}"></td>
 				<td>
 					<div class="dropdown" id="dropdown${id}">
 						<button class="btn btn-default dropdown-toggle" type="button" id="dropdown${id}_button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -17,9 +17,9 @@ function addRow(fra = '', esp = '', mode = 1, id = used_ids.length) {
 							<span class="caret"></span>
 						</button>
 						<ul class="dropdown-menu" aria-labelledby="dropdown${id}_button">
-							<li><a href="#" class="dropdownOption" id="dropdown${id}_mode1">Se puede pedir en franc&eacute;s y en espa&ntilde;ol</a></li>
-							<li><a href="#" class="dropdownOption" id="dropdown${id}_mode2">Se pide siempre en espa&ntilde;ol</a></li>
-							<li><a href="#" class="dropdownOption" id="dropdown${id}_mode3">Se pide siempre en franc&eacute;s</a></li>
+							<li><a href="#" class="dropdownOption" id="dropdown${id}_mode1">Se puede dar en franc&eacute;s y en espa&ntilde;ol</a></li>
+							<li><a href="#" class="dropdownOption" id="dropdown${id}_mode2">Se da siempre en espa&ntilde;ol (se pide en franc&eacute;s)</a></li>
+							<li><a href="#" class="dropdownOption" id="dropdown${id}_mode3">Se da siempre en franc&eacute;s (se pide en espa&ntilde;ol)</a></li>
 						</ul>
 					</div>
 				</td>

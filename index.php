@@ -38,7 +38,7 @@ if(isset($_GET['failureMode'])){
 							<li>Voici des caractères difficiles &agrave; &eacute;crire avec le clavier. Copie-les si tu en as besoin:<br> &aacute; &eacute; &iacute; &oacute; &uacute; &#124; &agrave; &egrave; &igrave; &ograve; &ugrave; &#124; &acirc; &ecirc; &icirc; &ocirc; &ucirc; &#124; &auml; &euml; &iuml; &ouml; &uuml; &#124; &#39; (apostrophe)<br>&Aacute; &Eacute; &Iacute; &Oacute; &Uacute; &#124; &Agrave; &Egrave; &Igrave; &Ograve; &Ugrave; &#124; &Acirc; &Ecirc; &Icirc; &Ocirc; &Ucirc; &#124; &Auml; &Euml; &Iuml; &Ouml; &Uuml;</li>
 						</ul>
 						<?php if($_SESSION['failureMode']){
-							echo '<div class="alert alert-info" role="alert">Maintenant, on te demande seulement les questions que tu as rat&eacute; la derni&eacute;re fois. Si ti veux faire tout l\'examen, <a href="index.php?examen='.$_GET['examen'].'">fais click ici</a>.</div>';
+							echo '<div class="alert alert-info" role="alert">Maintenant, on te pose seulement les questions que tu as rat&eacute;es la derni&egrave;re fois. Si tu veux faire tout l\'examen, <a href="index.php?examen='.$_GET['examen'].'">clique ici</a>.</div>';
 						}
 						?>
 						<div class="section" style="margin-top: 0px;">
@@ -47,8 +47,8 @@ if(isset($_GET['failureMode'])){
 									<table class="table table-condensed">
 										<thead>
 											<tr>
-												<td style="text-align: center;">En fran&ccedil;ais</td>
 												<td style="text-align: center;">En espagnol</td>
+												<td style="text-align: center;">En fran&ccedil;ais</td>
 											</tr>
 										</thead>
 										<tbody>
@@ -286,11 +286,10 @@ if(isset($_GET['failureMode'])){
 						?>!</p>
 					<?php endif; ?>
 					<div class="text-center">
-						<a class="btn btn-default" href="index.php?examen=<?php echo $_SESSION['examen'] ?>">Recommen&ccedil;er de z&eacute;ro</a>
 						<?php
 						//Offer the failure only mode if there is at least 1 mistake
 						if($bad != 0){
-							echo '<a class="btn btn-default" href="index.php?examen='.$_SESSION['examen'].'&failureMode" data-toggle="tooltip" data-placement="bottom" title="Si tu cliques sur ce bouton, on te demandera seulement les questions que tu as rat&eacute;. On ignorera les succ&egrave;s.">Recommen&ccedil;er seulement avec les erreurs</a>';
+							echo '<a class="btn btn-default" href="index.php?examen='.$_SESSION['examen'].'&failureMode" data-toggle="tooltip" data-placement="bottom" title="Si tu cliques sur ce bouton, on te reposera seulement les questions que tu as rat&eacute;es, sans les bonnes r&eacute;ponses.">Recommencer seulement avec les erreurs</a>';
 							//Bootstrap tooltip opt-in
 							echo '<script>
 									$(function () {
@@ -299,6 +298,7 @@ if(isset($_GET['failureMode'])){
 								  </script>';
 						}
 						?>
+						<a class="btn btn-default" href="index.php?examen=<?php echo $_SESSION['examen'] ?>">Recommencer</a>
 					</div>
 				</div>
 			</div>
