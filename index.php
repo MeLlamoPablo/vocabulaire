@@ -1,5 +1,5 @@
 <?php
-session_start();
+session_start();//TESTINGTESTINGTESTING
 require_once 'connect.php';
 
 if(isset($_POST['nom'])){
